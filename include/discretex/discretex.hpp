@@ -16,8 +16,12 @@
 
 // Algorithms
 #include "algorithms/bfs.hpp"
+#include "algorithms/topological_sort.hpp"
 
 // Combinatorics
 #include "combinatorics/k_subsets.hpp"
 #include "combinatorics/power_set.hpp"
 #include "combinatorics/projection.hpp"
+
+// Order Theory
+#include "order/poset.hpp"
