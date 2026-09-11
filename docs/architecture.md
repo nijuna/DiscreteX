@@ -30,7 +30,7 @@ $$\Omega = \{0, 1, \dots, n-1\}$$
 
 ### 2.2 Semantic Ingestion Boundary (`mapped_domain<T>`)
 For applications requiring arbitrary element types $T$, DiscreteX provides [`mapped_domain<T>`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/core/domain.hpp):
-- Encapsulates bidirectional mappings: forward translation $T \to \text{std::size_t}$ via hash indexing, and reverse retrieval $\text{std::size_t} \to \text{const } T\&$ via contiguous vector storage.
+- Encapsulates bidirectional mappings: forward translation from $T$ to `std::size_t` via hash indexing, and reverse retrieval from `std::size_t` to `const T&` via contiguous vector storage.
 - Elements are mapped exactly once at system boundaries (e.g., during graph ingestion or user query).
 - Core mathematical operations (such as shortest paths, network flows, or group quotients) execute over dense indices without bearing associative lookup costs.
 

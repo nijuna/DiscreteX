@@ -9,7 +9,12 @@ This document provides a guided walkthrough of the five primary mathematical pip
 ### 1.1 The Theoretical Continuum
 By Kleene's Theorem and the Myhill-Nerode Theorem, the following computational structures describe identical language classes:
 
-$$\text{Regex } R \xrightarrow{\text{Thompson}} \varepsilon\text{-NFA } N \xrightarrow{\text{Powerset}} \text{DFA } D \xrightarrow{\text{Hopcroft}} \text{Minimal DFA } D_{\min}$$
+```mermaid
+flowchart LR
+    A["Regex R"] -->|"Thompson"| B["ε-NFA N"]
+    B -->|"Powerset"| C["DFA D"]
+    C -->|"Hopcroft"| D["Minimal DFA D_min"]
+```
 
 - **Thompson Inductive Construction**: Every regular expression over alphabet $\Sigma$ can be inductively converted into an equivalent $\varepsilon$-NFA having exactly one initial state and one accepting state with zero incoming edges to the start state and zero outgoing edges from the accept state.
 - **Powerset Determinization**: An $\varepsilon$-NFA is transformed into a total DFA whose states correspond to $\varepsilon$-closure subsets of the NFA states.
@@ -260,4 +265,4 @@ int main() {
 
 ### 5.3 Certified Invariants
 - **Layered Level Graph**: BFS establishes vertex levels $d(u)$; DFS advances along blocking paths without backwards search.
-- **Residual Cut Identification**: The minimum cut partition $S$ is obtained by identifying all vertices reachable from $s$ in the residual graph $G_f$, guaranteeing $\text{capacity}(S, T) = \text{max\_flow}$.
+- **Residual Cut Identification**: The minimum cut partition $S$ is obtained by identifying all vertices reachable from $s$ in the residual graph $G_f$, guaranteeing $\text{capacity}(S, T) = \text{max-flow}$ (`dinic_res.max_flow == cut_cap`).

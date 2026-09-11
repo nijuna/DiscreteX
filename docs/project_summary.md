@@ -39,7 +39,7 @@ DiscreteX balances mathematical purity with hardware-level performance:
 | **Constraint Satisfaction (2-SAT)** | Aspvall-Plass-Tarjan Theorem | 2-CNF formula $\to$ directed implication graph $\to$ Tarjan SCC $\to$ topological model | Linear time $O(V + E)$; formula satisfiable iff $\forall x_i, \text{scc}(x_i) \ne \text{scc}(\neg x_i)$; extracts certified truth assignment. |
 | **Abstract Algebra & Quotients** | First Isomorphism Theorem for Groups | Cayley table $\to$ normal subgroup check $\to$ coset partition $\to$ quotient group $G/H$ | Rejects non-normal subgroups; verifies coset multiplication $(aH)(bH) = (ab)H$; certifies $S_3 / A_3 \cong \mathbb{Z}_2$. |
 | **Order Theory & Lattices** | Birkhoff Representation & Dedekind Divisibility | Divisors $\{d \mid n\} \to$ poset closure $\to$ covering relation $C = \preceq \setminus (\preceq \circ \preceq) \to$ Hasse diagram | Meets ($\gcd$) and joins ($\text{lcm}$) satisfy lattice axioms; square-free divisor posets proven isomorphic to Boolean hypercubes $Q_k$. |
-| **Network Optimization Duality** | Max-Flow Min-Cut & König's Theorem | `flow_network` $\to$ Dinic layered blocking flows $\to$ residual cut identification | Kirchhoff flow conservation at intermediate nodes; $\text{max\_flow} = \text{min\_cut}$; bipartite matching reduction certifying $|M| = |C|$. |
+| **Network Optimization Duality** | Max-Flow Min-Cut & König's Theorem | `flow_network` $\to$ Dinic layered blocking flows $\to$ residual cut identification | Kirchhoff flow conservation at intermediate nodes; $\text{max-flow} = \text{min-cut}$; bipartite matching reduction certifying $|M| = |C|$. |
 
 ---
 
