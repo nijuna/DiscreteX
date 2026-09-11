@@ -159,13 +159,18 @@ DiscreteX separates semantic relations from execution graphs via concepts:
   - Structure isomorphism testing (`is_isomorphism`), kernel extraction (`kernel`), and image ranges (`image`).
 - **Finite Boolean Algebras (`algebra/boolean_algebra.hpp`)**:
   - Algebraic structures $(B, \\lor, \\land, \\bar{\\cdot}, \\bot, \\top)$ with verified lattice absorption, mutual distributivity, and De Morgan complementation.
+- **Quotient Groups & First Isomorphism Theorem (`algebra/quotient.hpp`)**:
+  - `is_normal_subgroup`: Verifies subgroup closure and conjugation invariance ($g \\cdot h \\cdot g^{-1} \\in H$).
+  - `coset_partition`: Partitions group elements into disjoint left cosets $gH$, extracting member sets and canonical $O(1)$ projection maps.
+  - `quotient_group`: Constructs the quotient group $G / H$ as a first-class `finite_group<index_domain>` with verified coset multiplication $(aH)(bH) = (ab)H$.
+  - `certify_first_isomorphism_theorem`: Constructive realization of the First Isomorphism Theorem for Groups ($G / \\ker(f) \\cong \\text{im}(f)$), certifying structure-preserving bijections between cosets and image elements.
 - **Builders & Cross-Subsystem Bridges (`algebra/builders.hpp`)**:
   - `cyclic_group(n)`: Additive cyclic group $(\\mathbb{Z}/n\\mathbb{Z}, +)$.
   - `unit_group_mod_n(n)`: Multiplicative group of units $(\\mathbb{Z}/n\\mathbb{Z})^\\times$.
   - `klein_four_group()`: Klein four-group $V_4 \\cong \\mathbb{Z}_2 \\times \\mathbb{Z}_2$.
   - `power_set_boolean_algebra(k)`: Boolean algebra $\\mathcal{P}(\\{0, \\dots, k-1\\})$ of size $2^k$.
   - Structural isomorphism bridge: Certified isomorphism $(\\mathbb{Z}/8\\mathbb{Z})^\\times \\cong V_4$.
-  - First Isomorphism Theorem bridge: Quotient reduction $\\pi: \\mathbb{Z}_6 \\to \\mathbb{Z}_3$ with $\\ker(\\pi) = \\{0, 3\\} \\le \\mathbb{Z}_6$.
+  - First Isomorphism Theorem bridge: Certified quotient isomorphisms $\\mathbb{Z}_6 / \\{0, 3\\} \\cong \\mathbb{Z}_3$, $\\mathbb{Z}_{12} / \\{0, 4, 8\\} \\cong \\mathbb{Z}_4$, and $S_3 / A_3 \\cong \\mathbb{Z}_2$.
 
 ---
 

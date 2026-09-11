@@ -61,3 +61,4 @@
 #include "algebra/morphism.hpp"
 #include "algebra/boolean_algebra.hpp"
 #include "algebra/builders.hpp"
+#include "algebra/quotient.hpp"
