@@ -163,14 +163,37 @@ DiscreteX separates semantic relations from execution graphs via concepts:
   - `is_normal_subgroup`: Verifies subgroup closure and conjugation invariance ($g \\cdot h \\cdot g^{-1} \\in H$).
   - `coset_partition`: Partitions group elements into disjoint left cosets $gH$, extracting member sets and canonical $O(1)$ projection maps.
   - `quotient_group`: Constructs the quotient group $G / H$ as a first-class `finite_group<index_domain>` with verified coset multiplication $(aH)(bH) = (ab)H$.
-  - `certify_first_isomorphism_theorem`: Constructive realization of the First Isomorphism Theorem for Groups ($G / \\ker(f) \\cong \\text{im}(f)$), certifying structure-preserving bijections between cosets and image elements.
+  - `certify_first_isomorphism_theorem`: Constructive realization of the First Isomorphism Theorem for Groups ($G / \ker(f) \cong \text{im}(f)$), certifying structure-preserving bijections between cosets and image elements.
 - **Builders & Cross-Subsystem Bridges (`algebra/builders.hpp`)**:
-  - `cyclic_group(n)`: Additive cyclic group $(\\mathbb{Z}/n\\mathbb{Z}, +)$.
-  - `unit_group_mod_n(n)`: Multiplicative group of units $(\\mathbb{Z}/n\\mathbb{Z})^\\times$.
-  - `klein_four_group()`: Klein four-group $V_4 \\cong \\mathbb{Z}_2 \\times \\mathbb{Z}_2$.
-  - `power_set_boolean_algebra(k)`: Boolean algebra $\\mathcal{P}(\\{0, \\dots, k-1\\})$ of size $2^k$.
-  - Structural isomorphism bridge: Certified isomorphism $(\\mathbb{Z}/8\\mathbb{Z})^\\times \\cong V_4$.
-  - First Isomorphism Theorem bridge: Certified quotient isomorphisms $\\mathbb{Z}_6 / \\{0, 3\\} \\cong \\mathbb{Z}_3$, $\\mathbb{Z}_{12} / \\{0, 4, 8\\} \\cong \\mathbb{Z}_4$, and $S_3 / A_3 \\cong \\mathbb{Z}_2$.
+  - `cyclic_group(n)`: Additive cyclic group $(\mathbb{Z}/n\mathbb{Z}, +)$.
+  - `unit_group_mod_n(n)`: Multiplicative group of units $(\mathbb{Z}/n\mathbb{Z})^\times$.
+  - `klein_four_group()`: Klein four-group $V_4 \cong \mathbb{Z}_2 \times \mathbb{Z}_2$.
+  - `power_set_boolean_algebra(k)`: Boolean algebra $\mathcal{P}(\{0, \dots, k-1\})$ of size $2^k$.
+  - Structural isomorphism bridge: Certified isomorphism $(\mathbb{Z}/8\mathbb{Z})^\times \cong V_4$.
+  - First Isomorphism Theorem bridge: Certified quotient isomorphisms $\mathbb{Z}_6 / \{0, 3\} \cong \mathbb{Z}_3$, $\mathbb{Z}_{12} / \{0, 4, 8\} \cong \mathbb{Z}_4$, and $S_3 / A_3 \cong \mathbb{Z}_2$.
+
+### 8. Automata & Formal Languages (`discretex/automata`)
+- **Deterministic Finite Automata (`automata/dfa.hpp`)**:
+  - Dense total transition table of size $|Q| \times |\Sigma|$ (`transitions_[q * \Sigma + a]`) with $O(1)$ state transitions.
+  - Totality enforcement ensuring every state has defined transitions for every symbol in the alphabet.
+  - Start state configuration, characteristic boolean vector of accepting states, and generic word acceptance (`accepts`).
+- **Nondeterministic Finite Automata (`automata/nfa.hpp`)**:
+  - Sparse set-valued symbol transitions (`transitions(q, a)`) returning `std::span<const std::size_t>`.
+  - Separate representation of spontaneous $\varepsilon$-transitions (`epsilon_transitions(q)`).
+  - Single initial start state, accepting states, and dynamic edge addition (`add_transition`, `add_epsilon_transition`).
+- **Structural Automata Algorithms & Bridges (`automata/algorithms.hpp`)**:
+  - `state_set`: Dense 64-bit word packed bitset representation for state subsets with three-way comparison (`<=>`) and set unions.
+  - $\varepsilon$-Closure (`epsilon_closure`, `epsilon_closure_set`): BFS reachability over $\varepsilon$-edges from single states and arbitrary state collections.
+  - Direct NFA Acceptance (`accepts`): Step-by-step subset tracking with transitive $\varepsilon$-closure evaluation.
+  - Subset Construction (`subset_construction`, `determinize`): Powerset construction producing canonical total DFAs alongside inspectable subset mappings (`dfa_state_to_nfa_subset`). Certified language equivalence between NFA and determinized DFA.
+  - Complementation (`complement`): Fast $O(|Q|)$ inversion of accepting states on total DFAs, with involution invariance ($\overline{\overline{D}} \cong D$).
+  - Product Intersection (`intersect`): Direct synchronous product automaton on $Q_1 \times Q_2$ with reachability trimming, certifying $L(D_1 \cap D_2) = L(D_1) \cap L(D_2)$.
+  - Reachability Trimming (`trim_unreachable`): Breadth-first elimination of unreachable states and dense renumbering to $[0, k)$.
+  - Hopcroft Partition Refinement Minimization (`minimize_dfa`, `minimize_dfa_with_partition`):
+    - Computes minimal quotient DFA in $O(|\Sigma| \cdot |Q| \log |Q|)$ time using inverse transition precomputation and partition splitting.
+    - Produces canonical state numbering with start block indexed at 0 and remaining blocks ordered by minimum element.
+    - **Equivalence Relation Bridge**: Minimization partition blocks are certified as a mathematical equivalence relation via `relation_from_partition`, directly connecting automata minimization to the quotient and partition algebra subsystem.
+  - Language Equivalence (`language_equivalent`): Product state space exploration verifying language identity between arbitrary DFAs.
 
 ---
 

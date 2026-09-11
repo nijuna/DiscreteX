@@ -62,3 +62,9 @@
 #include "algebra/boolean_algebra.hpp"
 #include "algebra/builders.hpp"
 #include "algebra/quotient.hpp"
+
+// Automata & Formal Languages
+#include "automata/dfa.hpp"
+#include "automata/nfa.hpp"
+#include "automata/algorithms.hpp"
+

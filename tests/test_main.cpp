@@ -1709,6 +1709,193 @@ void test_quotient_groups_and_isomorphism_theorem() {
     std::cout << "  -> Passed (Normal subgroups, non-normal rejection, S_3/A_3, First Isomorphism Theorem certified)\n";
 }
 
+void test_automata_subsystem() {
+    std::cout << "[Test] Automata: DFA, NFA, Subset Construction, Complementation, Intersection & Hopcroft Minimization...\n";
+    using namespace discretex;
+    using namespace discretex::automata;
+
+    // Helper: generate all binary words up to length max_len
+    auto generate_binary_words = [](std::size_t max_len) {
+        std::vector<std::vector<std::size_t>> words;
+        words.push_back({}); // empty word
+        for (std::size_t len = 1; len <= max_len; ++len) {
+            std::size_t count = 1ULL << len;
+            for (std::size_t mask = 0; mask < count; ++mask) {
+                std::vector<std::size_t> w(len);
+                for (std::size_t i = 0; i < len; ++i) {
+                    w[i] = (mask >> (len - 1 - i)) & 1ULL;
+                }
+                words.push_back(std::move(w));
+            }
+        }
+        return words;
+    };
+    auto test_words = generate_binary_words(5); // 1 + 2 + 4 + 8 + 16 + 32 = 63 words
+
+    // 1. NFA with epsilon-transitions: recognizes (0|1)* 0 1
+    // Alphabet: {0, 1}
+    // States: 0 (start), 1, 2 (accepting), 3 (pre-start with epsilon-transition to 0)
+    nfa n(4, 2, 3);
+    n.add_epsilon_transition(3, 0);
+    // State 0: self-loops on 0 and 1; transition on 0 to state 1
+    n.add_transition(0, 0, 0);
+    n.add_transition(0, 1, 0);
+    n.add_transition(0, 0, 1);
+    // State 1: transition on 1 to state 2
+    n.add_transition(1, 1, 2);
+    // State 2: accepting
+    n.set_accepting(2, true);
+
+    // Test epsilon-closure
+    auto eps_3 = epsilon_closure(n, 3);
+    std::vector<std::size_t> expected_eps_3 = {0, 3};
+    assert(eps_3 == expected_eps_3);
+
+    auto eps_0 = epsilon_closure(n, 0);
+    std::vector<std::size_t> expected_eps_0 = {0};
+    assert(eps_0 == expected_eps_0);
+
+    // Direct NFA acceptance evaluation
+    assert(!accepts(n, std::vector<std::size_t>{}));
+    assert(!accepts(n, std::vector<std::size_t>{0}));
+    assert(!accepts(n, std::vector<std::size_t>{1}));
+    assert(accepts(n, std::vector<std::size_t>{0, 1}));
+    assert(accepts(n, std::vector<std::size_t>{0, 0, 1}));
+    assert(accepts(n, std::vector<std::size_t>{1, 1, 0, 1}));
+    assert(!accepts(n, std::vector<std::size_t>{1, 1, 0, 0}));
+    assert(accepts(n, std::vector<std::size_t>{0, 1, 0, 1}));
+    assert(!accepts(n, std::vector<std::size_t>{0, 1, 0}));
+
+    // 2. Subset Construction Bridge: NFA -> DFA
+    auto sc_res = subset_construction(n);
+    const auto& det_dfa = sc_res.machine;
+    assert(det_dfa.alphabet_size() == 2);
+    assert(det_dfa.state_count() > 0);
+
+    // Verify inspectable subset mapping
+    assert(sc_res.dfa_state_to_nfa_subset.size() == det_dfa.state_count());
+    // Start state subset should be epsilon-closure of start state {0, 3}
+    assert((sc_res.dfa_state_to_nfa_subset[det_dfa.start_state()] == std::vector<std::size_t>{0, 3}));
+
+    // Bridge Theorem: NFA accepts w <==> Determinized DFA accepts w
+    for (const auto& w : test_words) {
+        assert(accepts(n, w) == det_dfa.accepts(w));
+    }
+
+    // 3. DFA Complementation Law: accepts_D(w) <==> !accepts_comp(w)
+    auto comp_dfa = complement(det_dfa);
+    for (const auto& w : test_words) {
+        assert(det_dfa.accepts(w) == !comp_dfa.accepts(w));
+    }
+    // Double complementation involution: ~(~D) =~ D
+    auto double_comp = complement(comp_dfa);
+    assert(language_equivalent(double_comp, det_dfa));
+
+    // 4. Product Construction: DFA Intersection
+    // DFA 1: recognizes words with an even number of 0s
+    // States: 0 (even, start, acc), 1 (odd)
+    dfa d_even(2, 2, 0);
+    d_even.set_accepting(0, true);
+    d_even.set_transition(0, 0, 1);
+    d_even.set_transition(0, 1, 0);
+    d_even.set_transition(1, 0, 0);
+    d_even.set_transition(1, 1, 1);
+
+    // DFA 2: recognizes words ending in 1
+    // States: 0 (start, non-acc), 1 (acc)
+    dfa d_ends1(2, 2, 0);
+    d_ends1.set_accepting(1, true);
+    d_ends1.set_transition(0, 0, 0);
+    d_ends1.set_transition(0, 1, 1);
+    d_ends1.set_transition(1, 0, 0);
+    d_ends1.set_transition(1, 1, 1);
+
+    auto d_inter = intersect(d_even, d_ends1);
+    assert(d_inter.state_count() <= 4);
+
+    // Verify product intersection semantics: accepts(w) <==> d1.accepts(w) && d2.accepts(w)
+    for (const auto& w : test_words) {
+        bool expected = d_even.accepts(w) && d_ends1.accepts(w);
+        assert(d_inter.accepts(w) == expected);
+    }
+
+    // 5. DFA Minimization via Hopcroft Partition Refinement & Quotient Invariant
+    // Construct a DFA with redundant and equivalent states:
+    // Language: words ending in 1 over {0, 1}.
+    // States 0, 1, 2, 3:
+    // State 0: start, on 0 -> 0, on 1 -> 1
+    // State 1: acc, on 0 -> 2, on 1 -> 1
+    // State 2: on 0 -> 0, on 1 -> 1 (equivalent to state 0!)
+    // State 3: unreachable state (on 0 -> 3, on 1 -> 3)
+    dfa red_dfa(4, 2, 0);
+    red_dfa.set_accepting(1, true);
+    red_dfa.set_transition(0, 0, 0);
+    red_dfa.set_transition(0, 1, 1);
+    red_dfa.set_transition(1, 0, 2);
+    red_dfa.set_transition(1, 1, 1);
+    red_dfa.set_transition(2, 0, 0);
+    red_dfa.set_transition(2, 1, 1);
+    red_dfa.set_transition(3, 0, 3);
+    red_dfa.set_transition(3, 1, 3);
+
+    // Trim unreachable states
+    auto trimmed = trim_unreachable(red_dfa);
+    assert(trimmed.state_count() == 3);
+
+    // Minimize via Hopcroft
+    auto min_res = minimize_dfa_with_partition(red_dfa);
+    const auto& min_dfa = min_res.machine;
+    // States 0 and 2 are merged into 1 block, state 1 is the other block
+    assert(min_dfa.state_count() == 2);
+    assert(min_res.partition_blocks.size() == 2);
+
+    // Language preservation check across all words
+    for (const auto& w : test_words) {
+        assert(min_dfa.accepts(w) == red_dfa.accepts(w));
+    }
+    assert(language_equivalent(min_dfa, red_dfa));
+
+    // Bridge to Equivalence Relations & Partition Subsystem:
+    // Verify that minimization partition defines a bona fide equivalence relation on trimmed states
+    auto eq_rel = relation_from_partition(index_domain(trimmed.state_count()), min_res.partition_blocks);
+    assert(is_equivalence_relation(eq_rel));
+    assert(quotient_size(eq_rel) == min_dfa.state_count());
+    // In trimmed states {0, 1, 2}, states 0 and 2 are in the same block:
+    assert(eq_rel.contains(0, 2) && eq_rel.contains(2, 0));
+    assert(!eq_rel.contains(0, 1));
+
+    // Minimizing already-minimal DFA is an idempotent projection: |Q_min(Q_min)| == |Q_min|
+    auto min_min = minimize_dfa(min_dfa);
+    assert(min_min.state_count() == min_dfa.state_count());
+    assert(language_equivalent(min_min, min_dfa));
+
+    // 6. Degenerate automata edge cases
+    dfa empty_dfa(0, 2, 0);
+    assert(empty_dfa.state_count() == 0);
+    assert(!empty_dfa.accepts(std::vector<std::size_t>{0}));
+
+    // Universal language DFA (accepts all words)
+    dfa univ_dfa(3, 2, 0);
+    univ_dfa.set_accepting(0, true);
+    univ_dfa.set_accepting(1, true);
+    univ_dfa.set_accepting(2, true);
+    univ_dfa.set_transition(0, 0, 1);
+    univ_dfa.set_transition(0, 1, 2);
+    univ_dfa.set_transition(1, 0, 0);
+    univ_dfa.set_transition(1, 1, 2);
+    univ_dfa.set_transition(2, 0, 1);
+    univ_dfa.set_transition(2, 1, 0);
+
+    auto univ_min = minimize_dfa(univ_dfa);
+    assert(univ_min.state_count() == 1);
+    assert(univ_min.is_accepting(0));
+    for (const auto& w : test_words) {
+        assert(univ_min.accepts(w) == true);
+    }
+
+    std::cout << "  -> Passed (NFA eps-closure, subset construction, complement, product intersection, Hopcroft quotient)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -1736,6 +1923,7 @@ int main() {
     test_shortest_paths_suite();
     test_algebra_subsystem();
     test_quotient_groups_and_isomorphism_theorem();
+    test_automata_subsystem();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;
