@@ -28,6 +28,8 @@
 #include "algorithms/minimum_spanning_tree.hpp"
 #include "algorithms/network_flow.hpp"
 #include "algorithms/shortest_paths.hpp"
+#include "algorithms/connectivity.hpp"
+#include "algorithms/eulerian.hpp"
 
 // Combinatorics
 #include "combinatorics/counting.hpp"

@@ -2015,6 +2015,141 @@ void test_regex_and_decision_procedures() {
     std::cout << "  -> Passed (Thompson Regex->NFA, to_min_dfa pipeline, emptiness, universality, inclusion, equivalence)\n";
 }
 
+void test_graph_connectivity_and_eulerian_trails() {
+    std::cout << "[Test] Graph Theory: Bridges, Cut Vertices & Eulerian Trails/Circuits...\n";
+    using namespace discretex;
+    using namespace discretex::algorithms;
+
+    // 1. Tarjan's Bridge and Articulation Point (Cut Vertex) Detection
+    // Graph with 6 vertices:
+    // Triangle 1: {0, 1, 2}, edges: (0, 1), (1, 2), (0, 2)
+    // Bridge: edge (2, 3)
+    // Triangle 2: {3, 4, 5}, edges: (3, 4), (4, 5), (3, 5)
+    weighted_undirected_graph<int> g_bridge(6);
+    g_bridge.add_edge(0, 1, 1);
+    g_bridge.add_edge(1, 2, 1);
+    g_bridge.add_edge(0, 2, 1);
+    g_bridge.add_edge(2, 3, 1); // Bridge!
+    g_bridge.add_edge(3, 4, 1);
+    g_bridge.add_edge(4, 5, 1);
+    g_bridge.add_edge(3, 5, 1);
+
+    auto biconn = find_cut_vertices_and_bridges(g_bridge);
+    
+    // Exactly 1 bridge: (2, 3)
+    assert(biconn.bridges.size() == 1);
+    assert((biconn.bridges[0] == std::pair<std::size_t, std::size_t>{2, 3}));
+
+    // Exactly 2 cut vertices: 2 and 3
+    assert(biconn.cut_vertices.size() == 2);
+    assert((std::find(biconn.cut_vertices.begin(), biconn.cut_vertices.end(), 2) != biconn.cut_vertices.end()));
+    assert((std::find(biconn.cut_vertices.begin(), biconn.cut_vertices.end(), 3) != biconn.cut_vertices.end()));
+
+    // 2. Simple 2-vertex and tree graph checks
+    // Linear chain: 0 - 1 - 2 - 3
+    weighted_undirected_graph<int> g_chain(4);
+    g_chain.add_edge(0, 1, 1);
+    g_chain.add_edge(1, 2, 1);
+    g_chain.add_edge(2, 3, 1);
+
+    auto chain_conn = find_cut_vertices_and_bridges(g_chain);
+    assert(chain_conn.bridges.size() == 3);
+    assert(chain_conn.cut_vertices.size() == 2);
+    assert((chain_conn.cut_vertices == std::vector<std::size_t>{1, 2}));
+
+    // Cycle graph: 0 - 1 - 2 - 0 (2-edge-connected, 2-vertex-connected)
+    weighted_undirected_graph<int> g_cycle(3);
+    g_cycle.add_edge(0, 1, 1);
+    g_cycle.add_edge(1, 2, 1);
+    g_cycle.add_edge(2, 0, 1);
+
+    auto cycle_conn = find_cut_vertices_and_bridges(g_cycle);
+    assert(cycle_conn.bridges.empty());
+    assert(cycle_conn.cut_vertices.empty());
+
+    // 3. Undirected Eulerian Circuit (Bow-Tie graph)
+    // Two triangles sharing vertex 2: {0, 1, 2} and {2, 3, 4}
+    // Degrees: 0:2, 1:2, 2:4, 3:2, 4:2 (all even)
+    weighted_undirected_graph<int> g_bowtie(5);
+    g_bowtie.add_edge(0, 1, 1);
+    g_bowtie.add_edge(1, 2, 1);
+    g_bowtie.add_edge(2, 0, 1);
+    g_bowtie.add_edge(2, 3, 1);
+    g_bowtie.add_edge(3, 4, 1);
+    g_bowtie.add_edge(4, 2, 1);
+
+    assert(has_eulerian_circuit_undirected(g_bowtie));
+    assert(has_eulerian_trail_undirected(g_bowtie));
+
+    auto euler_undir_circ = find_eulerian_trail_undirected(g_bowtie);
+    assert(euler_undir_circ.has_trail);
+    assert(euler_undir_circ.is_circuit);
+    assert(euler_undir_circ.vertices.size() == 6 + 1); // 6 edges => 7 vertices
+    assert(euler_undir_circ.vertices.front() == euler_undir_circ.vertices.back()); // closed loop
+
+    // Verify trail traversal integrity: every edge is valid and used once
+    std::vector<std::pair<std::size_t, std::size_t>> traversed_edges;
+    for (std::size_t i = 0; i + 1 < euler_undir_circ.vertices.size(); ++i) {
+        std::size_t u = euler_undir_circ.vertices[i];
+        std::size_t v = euler_undir_circ.vertices[i + 1];
+        assert(g_bowtie.has_edge(u, v));
+        traversed_edges.emplace_back(std::min(u, v), std::max(u, v));
+    }
+    std::sort(traversed_edges.begin(), traversed_edges.end());
+    auto orig_edges = traversed_edges;
+    orig_edges.erase(std::unique(orig_edges.begin(), orig_edges.end()), orig_edges.end());
+    assert(orig_edges.size() == 6); // All 6 edges distinct
+
+    // 4. Undirected Eulerian Trail (Open path)
+    // 0 - 1 - 2 - 3
+    assert(!has_eulerian_circuit_undirected(g_chain));
+    assert(has_eulerian_trail_undirected(g_chain));
+    auto euler_chain = find_eulerian_trail_undirected(g_chain);
+    assert(euler_chain.has_trail);
+    assert(!euler_chain.is_circuit);
+    assert(euler_chain.vertices.size() == 3 + 1);
+    assert((euler_chain.vertices.front() == 0 && euler_chain.vertices.back() == 3) ||
+           (euler_chain.vertices.front() == 3 && euler_chain.vertices.back() == 0));
+
+    // 5. Undirected Non-Eulerian (Complete graph K_4: all degrees = 3)
+    weighted_undirected_graph<int> g_k4(4);
+    for (std::size_t u = 0; u < 4; ++u) {
+        for (std::size_t v = u + 1; v < 4; ++v) {
+            g_k4.add_edge(u, v, 1);
+        }
+    }
+    assert(!has_eulerian_circuit_undirected(g_k4));
+    assert(!has_eulerian_trail_undirected(g_k4));
+    assert(!find_eulerian_trail_undirected(g_k4).has_trail);
+
+    // 6. Directed Eulerian Circuit and Trail
+    // A. Directed Circuit: 0 -> 1 -> 2 -> 0
+    index_domain dom3(3);
+    bidirectional_adjacency_graph g_dir_circ(dom3);
+    g_dir_circ.add_edge(0, 1);
+    g_dir_circ.add_edge(1, 2);
+    g_dir_circ.add_edge(2, 0);
+
+    assert(has_eulerian_circuit_directed(g_dir_circ));
+    auto dir_circ_res = find_eulerian_trail_directed(g_dir_circ);
+    assert(dir_circ_res.has_trail);
+    assert(dir_circ_res.is_circuit);
+    assert(dir_circ_res.vertices.size() == 4);
+    assert(dir_circ_res.vertices.front() == dir_circ_res.vertices.back());
+
+    // B. Directed Trail: 0 -> 1 -> 2
+    bidirectional_adjacency_graph g_dir_trail(dom3);
+    g_dir_trail.add_edge(0, 1);
+    g_dir_trail.add_edge(1, 2);
+    assert(!has_eulerian_circuit_directed(g_dir_trail));
+    auto dir_trail_res = find_eulerian_trail_directed(g_dir_trail);
+    assert(dir_trail_res.has_trail);
+    assert(!dir_trail_res.is_circuit);
+    assert((dir_trail_res.vertices == std::vector<std::size_t>{0, 1, 2}));
+
+    std::cout << "  -> Passed (Tarjan bridges & articulation points, Hierholzer directed & undirected Eulerian trails)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -2044,6 +2179,7 @@ int main() {
     test_quotient_groups_and_isomorphism_theorem();
     test_automata_subsystem();
     test_regex_and_decision_procedures();
+    test_graph_connectivity_and_eulerian_trails();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;

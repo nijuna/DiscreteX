@@ -88,6 +88,14 @@ DiscreteX separates semantic relations from execution graphs via concepts:
   - Generates an acyclic `bidirectional_adjacency_graph` with automatically sorted, deduplicated cross-component edges.
 - **Topological Sorting (`algorithms/topological_sort.hpp`)**:
   - Kahn's algorithm with cycle detection over any `concepts::ForwardRelation`.
+- **Biconnectivity, Cut Vertices & Bridges (`algorithms/connectivity.hpp`)**:
+  - `find_cut_vertices_and_bridges`: Tarjan's low-link algorithm running in $O(V + E)$ on undirected graphs.
+  - Returns `biconnectivity_result` containing articulation points (cut vertices) and bridges.
+  - Helpers: `find_cut_vertices` and `find_bridges`.
+- **Eulerian Circuits & Trails (`algorithms/eulerian.hpp`)**:
+  - Dedicated undirected predicates and tour synthesis: `has_eulerian_circuit_undirected`, `has_eulerian_trail_undirected`, and `find_eulerian_trail_undirected` via Hierholzer's algorithm in $O(V + E)$.
+  - Dedicated directed predicates and tour synthesis: `has_eulerian_circuit_directed`, `has_eulerian_trail_directed`, and `find_eulerian_trail_directed`.
+  - Returns `eulerian_result` containing the ordered vertex sequence of the Eulerian walk.
 
 ### 3. Enumerative Combinatorics & Generators (`discretex/combinatorics`)
 - **Counting & Special Numbers (`counting.hpp`)**:
