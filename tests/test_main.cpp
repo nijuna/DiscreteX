@@ -924,6 +924,101 @@ void test_two_sat_implication_engine() {
     std::cout << "  -> Passed (Implication graph, Aspvall-Plass-Tarjan satisfiability, model extraction)\n";
 }
 
+void test_bipartite_matching_and_koenig() {
+    std::cout << "[Test] Graph Theory: Bipartite Matching (Kuhn, Hopcroft-Karp) & Koenig's Theorem...\n";
+    using namespace discretex::algorithms;
+
+    // 1. Perfect Matching Case
+    // Left: 4 vertices, Right: 4 vertices
+    // Edges: (0,0), (0,1), (1,1), (2,2), (3,2), (3,3)
+    bipartite_graph g1(4, 4);
+    g1.add_edge(0, 0);
+    g1.add_edge(0, 1);
+    g1.add_edge(1, 1);
+    g1.add_edge(2, 2);
+    g1.add_edge(3, 2);
+    g1.add_edge(3, 3);
+    assert(g1.edge_count() == 6);
+
+    auto m_kuhn1 = maximum_bipartite_matching_kuhn(g1);
+    auto m_hk1 = maximum_bipartite_matching_hopcroft_karp(g1);
+    auto m_canon1 = maximum_bipartite_matching(g1);
+
+    assert(m_kuhn1.matching_size == 4);
+    assert(m_hk1.matching_size == 4);
+    assert(m_canon1.matching_size == 4);
+
+    // Verify all matched pairs are genuine edges in g1
+    for (const auto& [u, v] : m_hk1.edges()) {
+        assert(g1.contains(u, v));
+    }
+
+    // Verify injective property: no two left vertices share the same right mate
+    std::vector<bool> seen_r(4, false);
+    for (std::size_t u = 0; u < 4; ++u) {
+        if (m_hk1.is_matched_left(u)) {
+            std::size_t v = m_hk1.mate_left[u];
+            assert(!seen_r[v]);
+            seen_r[v] = true;
+            assert(m_hk1.mate_right[v] == u);
+        }
+    }
+
+    // Koenig Theorem verification for g1:
+    // Min vertex cover size == Max matching size == 4
+    auto cover1 = minimum_vertex_cover(g1, m_hk1);
+    assert(cover1.size() == 4);
+
+    // Verify every edge in g1 is covered: u in left_cover OR v in right_cover
+    auto is_covered = [&](std::size_t u, std::size_t v, const vertex_cover_result& cov) {
+        bool in_l = std::find(cov.left_cover.begin(), cov.left_cover.end(), u) != cov.left_cover.end();
+        bool in_r = std::find(cov.right_cover.begin(), cov.right_cover.end(), v) != cov.right_cover.end();
+        return in_l || in_r;
+    };
+
+    for (std::size_t u = 0; u < g1.left_size(); ++u) {
+        for (std::size_t v : g1.right_neighbors(u)) {
+            assert(is_covered(u, v, cover1));
+        }
+    }
+
+    // 2. Bottleneck Case (Hall condition violation for full matching)
+    // Left: 3 vertices, Right: 3 vertices
+    // 0 -> {0, 1}, 1 -> {0, 1}, 2 -> {0, 1}. (Only 2 right vertices available for 3 left vertices)
+    bipartite_graph g2(3, 3);
+    g2.add_edge(0, 0);
+    g2.add_edge(0, 1);
+    g2.add_edge(1, 0);
+    g2.add_edge(1, 1);
+    g2.add_edge(2, 0);
+    g2.add_edge(2, 1);
+
+    auto m_kuhn2 = maximum_bipartite_matching_kuhn(g2);
+    auto m_hk2 = maximum_bipartite_matching_hopcroft_karp(g2);
+
+    assert(m_kuhn2.matching_size == 2);
+    assert(m_hk2.matching_size == 2);
+
+    // Koenig theorem for g2: Cover size must be exactly 2
+    auto cover2 = minimum_vertex_cover(g2, m_hk2);
+    assert(cover2.size() == 2);
+    for (std::size_t u = 0; u < g2.left_size(); ++u) {
+        for (std::size_t v : g2.right_neighbors(u)) {
+            assert(is_covered(u, v, cover2));
+        }
+    }
+
+    // 3. Empty and Single Edge graphs
+    bipartite_graph g_empty(2, 2);
+    assert(maximum_bipartite_matching(g_empty).matching_size == 0);
+
+    bipartite_graph g_single(2, 2);
+    g_single.add_edge(0, 1);
+    assert(maximum_bipartite_matching(g_single).matching_size == 1);
+
+    std::cout << "  -> Passed (Kuhn == Hopcroft-Karp, Koenig |M|==|C|, injectivity certification)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -945,10 +1040,12 @@ int main() {
     test_set_partitions_and_equivalence_bridge();
     test_tarjan_scc_and_condensation();
     test_two_sat_implication_engine();
+    test_bipartite_matching_and_koenig();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;
 }
+
 
 
 

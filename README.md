@@ -40,14 +40,24 @@ DiscreteX separates semantic relations from execution graphs via concepts:
 - Generic Breadth-First Search (`algorithms::bfs`) operating uniformly across dense relations, sparse graphs, and transpose views.
 
 ### 2. Graph Algorithms & Structural Connectivity (`discretex/algorithms`, `discretex/graph`)
-- **Tarjan Strongly Connected Components (`algorithms::tarjan_scc`)**:
+- **Bipartite Graphs (`graph/bipartite_graph.hpp`)**:
+  - Explicit partitioned graph structure $G = (L \cup R, E)$ with zero-overhead side-local vertex indices.
+  - Sorted neighbor arrays with $O(\log \text{deg})$ edge queries and `std::span` neighbor access.
+- **Maximum Bipartite Matching (`algorithms/bipartite_matching.hpp`)**:
+  - `maximum_bipartite_matching_kuhn`: Augmenting path algorithm in $O(|V| \cdot |E|)$.
+  - `maximum_bipartite_matching_hopcroft_karp`: Layered BFS/DFS augmenting path algorithm running in $O(|E|\sqrt{|V|})$.
+  - `matching_result`: Exposes left-to-right and right-to-left mate arrays, total cardinality $|M|$, and matched edge pairs.
+- **König's Theorem Minimum Vertex Cover (`algorithms/bipartite_matching.hpp`)**:
+  - `minimum_vertex_cover`: Constructive realization of König's duality theorem ($|M| = |C|$) on bipartite graphs.
+  - Computes reachable alternating components $(Z_L, Z_R)$ from unmatched left vertices to construct the exact minimal vertex cover $C = (L \setminus Z_L) \cup Z_R$.
+- **Tarjan Strongly Connected Components (`algorithms/tarjan_scc.hpp`)**:
   - Computes SCC decomposition in linear time $O(V + E)$ on any `concepts::ForwardRelation`.
   - Normalizes component IDs in topological order of the condensation DAG.
   - Returns `scc_result` providing both $O(1)$ vertex component lookup (`component_of[v]`) and explicit component member lists (`components[c]`).
-- **Condensation DAG (`algorithms::condensation_dag`)**:
+- **Condensation DAG (`algorithms/condensation.hpp`)**:
   - Contracts each strongly connected component into a meta-vertex in `index_domain(component_count)`.
   - Generates an acyclic `bidirectional_adjacency_graph` with automatically sorted, deduplicated cross-component edges.
-- **Topological Sorting (`algorithms::topological_sort`)**:
+- **Topological Sorting (`algorithms/topological_sort.hpp`)**:
   - Kahn's algorithm with cycle detection over any `concepts::ForwardRelation`.
 
 ### 3. Enumerative Combinatorics & Generators (`discretex/combinatorics`)

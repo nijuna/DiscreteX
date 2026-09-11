@@ -11,6 +11,7 @@
 #include "relation/dense_relation.hpp"
 #include "relation/equivalence.hpp"
 #include "graph/sparse_graph.hpp"
+#include "graph/bipartite_graph.hpp"
 
 // Views
 #include "views/transpose_view.hpp"
@@ -20,6 +21,7 @@
 #include "algorithms/topological_sort.hpp"
 #include "algorithms/tarjan_scc.hpp"
 #include "algorithms/condensation.hpp"
+#include "algorithms/bipartite_matching.hpp"
 
 // Combinatorics
 #include "combinatorics/counting.hpp"
