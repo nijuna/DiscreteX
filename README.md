@@ -17,7 +17,7 @@ The goal of DiscreteX is to unify these domains into a mathematically coherent, 
 
 - **[Start Here: 5-Minute Orientation](docs/start_here.md)**: Fast setup, 10-line sandbox demo, learning tracks, and recommended reading path.
 - **[API Quick Reference Index](docs/api_index.md)**: Navigable reference of all 34 header files, types, algorithms, and one-line summaries.
-- **[One-Page Project Summary](docs/project_summary.md)**: Compact briefing for academic outreach, course adoption, and portfolio use.
+- **[One-Page Project Summary](docs/project_summary.md)**: Compact technical briefing of library architecture, core pipelines, and performance characteristics.
 - **[Architectural Overview and System Design](docs/architecture.md)**: Comprehensive analysis of the two-tier domain identity model, 64-bit hardware-accelerated bit-matrices, concept abstractions, cross-subsystem bridges, and theoretical asymptotic bounds.
 - **[Theory-to-Code Tour](docs/theory_to_code_tour.md)**: Guided walkthrough of the 5 primary mathematical pipelines mapping formal theorems directly to verified C++20 code.
 - **[Release Notes v1.0.0](docs/release_notes_v1.0.0.md)**: Complete v1.0.0 release highlights, supported mathematical domain taxonomy, and API stability guarantees.
