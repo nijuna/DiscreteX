@@ -214,22 +214,191 @@ DiscreteX separates semantic relations from execution graphs via concepts:
 
 ---
 
-## Build and Test
+## Integration and Installation
 
-DiscreteX requires a C++20 compliant compiler (GCC 11+, Clang 13+).
+DiscreteX is a header-only library requiring ISO C++20. It has zero external dependencies beyond the standard library.
+
+### Option 1: CMake FetchContent (Recommended)
+
+Incorporate DiscreteX directly into your CMake project without manual installation:
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    DiscreteX
+    GIT_REPOSITORY https://github.com/nijuna/DiscreteX.git
+    GIT_TAG        v1.0.0
+)
+FetchContent_MakeAvailable(DiscreteX)
+
+add_executable(my_project main.cpp)
+target_link_libraries(my_project PRIVATE DiscreteX::DiscreteX)
+```
+
+### Option 2: System-Wide Installation
+
+Install headers and CMake package configuration files:
 
 ```bash
-# Compile and run the complete test suite
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+sudo cmake --install build
+```
+
+Then consume it in any downstream `CMakeLists.txt`:
+
+```cmake
+find_package(DiscreteX CONFIG REQUIRED)
+
+add_executable(my_project main.cpp)
+target_link_libraries(my_project PRIVATE DiscreteX::DiscreteX)
+```
+
+### Option 3: Direct Header Inclusion
+
+Because DiscreteX is header-only, you can clone or copy the `include/` directory and add it to your compiler's include search path:
+
+```bash
+g++ -std=c++20 -O2 -I/path/to/DiscreteX/include main.cpp -o my_project
+```
+
+---
+
+## Standalone Examples
+
+DiscreteX includes curated, standalone examples in `examples/` demonstrating core mathematical algorithms and cross-subsystem bridges:
+
+| Example Source | Subsystems Demonstrated | Key Invariants Verified |
+| :--- | :--- | :--- |
+| [`examples/regex_to_min_dfa.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/regex_to_min_dfa.cpp) | Automata, Regular Expressions | Thompson NFA, Powerset DFA, Hopcroft minimization, language inclusion and equivalence |
+| [`examples/quotient_group_isomorphism.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/quotient_group_isomorphism.cpp) | Abstract Algebra | $S_3$ permutation group, normality checks, coset quotient groups, First Isomorphism Theorem ($S_3/A_3 \cong \mathbb{Z}_2$) |
+| [`examples/network_flow_min_cut.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/network_flow_min_cut.cpp) | Graph Theory, Network Flow | Dinic blocking flow, flow conservation at all vertices, Max-Flow Min-Cut duality theorem |
+| [`examples/two_sat_solver.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/two_sat_solver.cpp) | Logic, Graph Connectivity | 2-CNF implication graphs, Tarjan SCC decomposition, Aspvall-Plass-Tarjan linear 2-SAT solver, model extraction |
+| [`examples/shortest_paths.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/shortest_paths.cpp) | Graph Theory, Shortest Paths | Dijkstra single-source shortest paths, lazy path reconstruction, path integrity certification, Floyd-Warshall |
+
+Run all examples via:
+
+```bash
+make examples
+```
+
+---
+
+## Build and Verification
+
+### Requirements
+- ISO C++20 compliant compiler:
+  - GCC 11+
+  - Clang 13+
+  - MSVC 19.29+ (Visual Studio 2019 version 16.11+)
+- Build systems: GNU Make or CMake 3.15+
+
+### Build Targets
+
+```bash
+# Build and execute all 25 unit test suites and all 5 examples
+make
+
+# Execute only unit test suites
 make test
 
-# Clean artifacts
+# Compile and execute standalone examples
+make examples
+
+# Clean all build artifacts
 make clean
 ```
 
-All algorithms and bridges are verified with 100% test coverage under `-std=c++20 -Wall -Wextra -Wpedantic`.
+All algorithms, models, and cross-subsystem bridges are compiled with `-std=c++20 -Wall -Wextra -Wpedantic -O2` and pass with 0 warnings.
+
+---
+
+## Repository Structure
+
+```
+DiscreteX/
+├── CMakeLists.txt
+├── Makefile
+├── README.md
+├── LICENSE
+├── cmake/
+│   └── DiscreteXConfig.cmake.in
+├── examples/
+│   ├── network_flow_min_cut.cpp
+│   ├── quotient_group_isomorphism.cpp
+│   ├── regex_to_min_dfa.cpp
+│   ├── shortest_paths.cpp
+│   └── two_sat_solver.cpp
+├── include/
+│   └── discretex/
+│       ├── discretex.hpp
+│       ├── algebra/
+│       │   ├── boolean_algebra.hpp
+│       │   ├── builders.hpp
+│       │   ├── group.hpp
+│       │   ├── laws.hpp
+│       │   ├── monoid.hpp
+│       │   ├── morphism.hpp
+│       │   ├── operation_table.hpp
+│       │   └── quotient.hpp
+│       ├── algorithms/
+│       │   ├── bfs.hpp
+│       │   ├── bipartite_matching.hpp
+│       │   ├── condensation.hpp
+│       │   ├── connectivity.hpp
+│       │   ├── eulerian.hpp
+│       │   ├── minimum_spanning_tree.hpp
+│       │   ├── network_flow.hpp
+│       │   ├── shortest_paths.hpp
+│       │   ├── tarjan_scc.hpp
+│       │   └── topological_sort.hpp
+│       ├── automata/
+│       │   ├── algorithms.hpp
+│       │   ├── dfa.hpp
+│       │   ├── nfa.hpp
+│       │   └── regex.hpp
+│       ├── combinatorics/
+│       │   ├── counting.hpp
+│       │   ├── integer_partitions.hpp
+│       │   ├── permutations.hpp
+│       │   ├── project.hpp
+│       │   ├── set_partitions.hpp
+│       │   └── subsets.hpp
+│       ├── concepts/
+│       │   ├── domain.hpp
+│       │   ├── graph.hpp
+│       │   └── relation.hpp
+│       ├── core/
+│       │   ├── bit_row_fiber_view.hpp
+│       │   ├── domain.hpp
+│       │   └── dsu.hpp
+│       ├── graph/
+│       │   ├── bipartite_graph.hpp
+│       │   ├── flow_network.hpp
+│       │   ├── sparse_graph.hpp
+│       │   └── weighted_graph.hpp
+│       ├── logic/
+│       │   ├── formula.hpp
+│       │   ├── normal_forms.hpp
+│       │   ├── truth_table.hpp
+│       │   └── two_sat.hpp
+│       ├── number_theory/
+│       │   ├── modular.hpp
+│       │   ├── primes.hpp
+│       │   └── properties.hpp
+│       ├── order/
+│       │   └── poset.hpp
+│       └── relation/
+│           ├── dense_relation.hpp
+│           ├── equivalence.hpp
+│           └── transpose_view.hpp
+└── tests/
+    ├── test_main.cpp
+    └── test_runner.hpp
+```
 
 ---
 
 ## License
 
-MIT License.
+DiscreteX is released under the MIT License.
