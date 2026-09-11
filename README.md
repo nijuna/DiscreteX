@@ -5,7 +5,7 @@
 [![Standard](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-DiscreteX is a modern, unified C++20 library for finite discrete mathematics and discrete structures.
+DiscreteX is a modern C++20 header-only library for finite discrete mathematics and algorithmic structures. It uses a bridge-driven architecture to connect abstract algebra, automata theory, propositional logic, graph theory, order theory, and combinatorics through coherent reusable abstractions. Built around a two-tier domain identity model, 64-bit hardware-accelerated bit-matrices, zero third-party dependencies, and fully verified test coverage.
 
 In the standard C++ ecosystem, discrete mathematics is fragmented: graph libraries, combinatorics utilities, logic engines, and number-theoretic algorithms often use conflicting abstractions, bespoke container types, and inconsistent indexing models. 
 
@@ -17,6 +17,7 @@ The goal of DiscreteX is to unify these domains into a mathematically coherent, 
 
 - **[Start Here: 5-Minute Orientation](docs/start_here.md)**: Fast setup, 10-line sandbox demo, learning tracks, and recommended reading path.
 - **[API Quick Reference Index](docs/api_index.md)**: Navigable reference of all 34 header files, types, algorithms, and one-line summaries.
+- **[One-Page Project Summary](docs/project_summary.md)**: Compact briefing for academic outreach, course adoption, and portfolio use.
 - **[Architectural Overview and System Design](docs/architecture.md)**: Comprehensive analysis of the two-tier domain identity model, 64-bit hardware-accelerated bit-matrices, concept abstractions, cross-subsystem bridges, and theoretical asymptotic bounds.
 - **[Theory-to-Code Tour](docs/theory_to_code_tour.md)**: Guided walkthrough of the 5 primary mathematical pipelines mapping formal theorems directly to verified C++20 code.
 - **[Release Notes v1.0.0](docs/release_notes_v1.0.0.md)**: Complete v1.0.0 release highlights, supported mathematical domain taxonomy, and API stability guarantees.
@@ -344,6 +345,7 @@ DiscreteX/
 ├── docs/
 │   ├── api_index.md
 │   ├── architecture.md
+│   ├── project_summary.md
 │   ├── release_notes_v1.0.0.md
 │   ├── start_here.md
 │   └── theory_to_code_tour.md
