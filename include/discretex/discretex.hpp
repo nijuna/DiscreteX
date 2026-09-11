@@ -52,3 +52,12 @@
 #include "number_theory/modular.hpp"
 #include "number_theory/primes.hpp"
 #include "number_theory/congruence.hpp"
+
+// Abstract Algebra
+#include "algebra/operation_table.hpp"
+#include "algebra/laws.hpp"
+#include "algebra/monoid.hpp"
+#include "algebra/group.hpp"
+#include "algebra/morphism.hpp"
+#include "algebra/boolean_algebra.hpp"
+#include "algebra/builders.hpp"

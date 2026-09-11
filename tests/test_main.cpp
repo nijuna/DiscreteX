@@ -1461,6 +1461,151 @@ void test_shortest_paths_suite() {
     std::cout << "  -> Passed (DAG, Dijkstra, Bellman-Ford, Floyd-Warshall, cross-validations, cycle detection)\n";
 }
 
+void test_algebra_subsystem() {
+    std::cout << "[Test] Abstract Algebra: Operation Tables, Laws, Groups, Morphisms & Boolean Algebras...\n";
+    using namespace discretex;
+    using namespace discretex::algebra;
+
+    // 1. Operation Table & Laws Verification
+    // Non-associative operation: Subtraction modulo 5: (a - b) mod 5
+    auto sub_table = operation_table<index_domain>::from_callable(
+        index_domain(5),
+        [](std::size_t a, std::size_t b) {
+            return (a + 5 - b) % 5;
+        });
+    assert(!is_associative(sub_table)); // (1 - 2) - 3 = 4 - 3 = 1 != 1 - (2 - 3) = 1 - 4 = 2
+
+    // Associative & Commutative: Addition modulo 6
+    auto add_table = operation_table<index_domain>::from_callable(
+        index_domain(6),
+        [](std::size_t a, std::size_t b) {
+            return (a + b) % 6;
+        });
+    assert(is_associative(add_table));
+    assert(is_commutative(add_table));
+    auto id_add = find_identity(add_table);
+    assert(id_add.has_value() && *id_add == 0);
+    assert(has_inverses(add_table, 0));
+    auto inv_add = inverse_table(add_table, 0);
+    assert(inv_add.has_value());
+    assert((*inv_add)[0] == 0 && (*inv_add)[1] == 5 && (*inv_add)[2] == 4);
+
+    // 2. Finite Monoids
+    // Multiplication modulo 6: (Z/6Z, * mod 6)
+    // Associative with identity 1, but not a group because 2, 3, 4, 0 have no inverses.
+    auto mul6 = finite_monoid<index_domain>::from_callable(
+        index_domain(6),
+        [](std::size_t a, std::size_t b) {
+            return (a * b) % 6;
+        });
+    assert(mul6.identity() == 1);
+    assert(mul6.op(2, 3) == 0);
+    assert(mul6.is_commutative());
+    assert(!has_inverses(mul6.operation(), 1));
+
+    // 3. Finite Groups: Cyclic Group Z_6 and Element Orders
+    auto z6 = cyclic_group(6);
+    assert(z6.size() == 6);
+    assert(z6.order() == 6);
+    assert(z6.identity() == 0);
+    assert(z6.is_abelian());
+    assert(z6.element_order(0) == 1);
+    assert(z6.element_order(1) == 6);
+    assert(z6.element_order(2) == 3);
+    assert(z6.element_order(3) == 2);
+    assert(z6.element_order(4) == 3);
+    assert(z6.element_order(5) == 6);
+
+    // Subgroup verification:
+    // H = {0, 2, 4} is a subgroup of Z_6 (order 3, Lagrange theorem holds: 3 | 6)
+    assert(z6.is_subgroup({0, 2, 4}));
+    // H = {0, 3} is a subgroup of Z_6 (order 2, Lagrange theorem holds: 2 | 6)
+    assert(z6.is_subgroup({0, 3}));
+    // H = {0, 1} is not a subgroup (1 + 1 = 2 not in H)
+    assert(!z6.is_subgroup({0, 1}));
+
+    // Multiplicative Unit Group (Z/8Z)*:
+    // Elements coprime to 8: {1, 3, 5, 7}, size phi(8) = 4.
+    auto u8 = unit_group_mod_n(8);
+    assert(u8.order() == 4);
+    assert(u8.is_abelian());
+    // In (Z/8Z)*, every element squared is 1: 1^2=1, 3^2=9=1, 5^2=25=1, 7^2=49=1!
+    for (std::size_t i = 0; i < 4; ++i) {
+        if (i == u8.identity()) {
+            assert(u8.element_order(i) == 1);
+        } else {
+            assert(u8.element_order(i) == 2);
+        }
+    }
+
+    // 4. Morphisms: Homomorphisms and Isomorphisms
+    // A. Natural projection homomorphism pi: Z_6 -> Z_3: pi(x) = x mod 3
+    auto z3 = cyclic_group(3);
+    auto pi = mod_reduction_homomorphism(6, 3);
+    assert(is_homomorphism(pi, z6, z3));
+    assert(is_surjective(pi, 3));
+    assert(!is_injective(pi));
+    assert(!is_isomorphism(pi, z6, z3));
+
+    // First Isomorphism Theorem check:
+    // Ker(pi) = {x in Z_6 | pi(x) == 0} = {0, 3}
+    auto ker = kernel(pi, z3.identity());
+    std::vector<std::size_t> expected_ker = {0, 3};
+    assert(ker == expected_ker);
+    assert(z6.is_subgroup(ker)); // Kernel is a subgroup!
+
+    // Image(pi) = {0, 1, 2}
+    auto im = image(pi);
+    std::vector<std::size_t> expected_im = {0, 1, 2};
+    assert(im == expected_im);
+
+    // B. Group Isomorphism: Klein 4-group V_4 isomorphic to (Z/8Z)*
+    auto v4 = klein_four_group();
+    assert(v4.order() == 4);
+    // Both V_4 and U_8 are elementary abelian groups of order 4 (Z_2 x Z_2).
+    // The units {1, 3, 5, 7} map to indices: 1->0 (id), 3->1, 5->2, 7->3.
+    // 3 * 5 = 15 = 7 mod 8 (index 1 * 2 = 3).
+    // In V4: 1 ^ 2 = 3. Perfectly matches!
+    std::vector<std::size_t> v4_to_u8 = {0, 1, 2, 3};
+    assert(is_isomorphism(v4_to_u8, v4, u8));
+
+    // 5. Finite Boolean Algebra
+    // Power set Boolean algebra on 3 elements: B_3 = P({0, 1, 2}) of size 8
+    auto b3 = power_set_boolean_algebra(3);
+    assert(b3.size() == 8);
+    assert(b3.bottom() == 0);
+    assert(b3.top() == 7);
+
+    // Verify Boolean algebraic properties
+    for (std::size_t a = 0; a < 8; ++a) {
+        // Idempotence
+        assert(b3.join(a, a) == a);
+        assert(b3.meet(a, a) == a);
+        // Identity
+        assert(b3.join(a, b3.bottom()) == a);
+        assert(b3.meet(a, b3.top()) == a);
+        // Complements
+        assert(b3.join(a, b3.complement(a)) == b3.top());
+        assert(b3.meet(a, b3.complement(a)) == b3.bottom());
+        // Double complement (involution)
+        assert(b3.complement(b3.complement(a)) == a);
+
+        for (std::size_t b = 0; b < 8; ++b) {
+            // De Morgan's laws: ~(a \/ b) == ~a /\ ~b
+            std::size_t not_a_or_b = b3.complement(b3.join(a, b));
+            std::size_t not_a_and_not_b = b3.meet(b3.complement(a), b3.complement(b));
+            assert(not_a_or_b == not_a_and_not_b);
+
+            // ~(a /\ b) == ~a \/ ~b
+            std::size_t not_a_and_b = b3.complement(b3.meet(a, b));
+            std::size_t not_a_or_not_b = b3.join(b3.complement(a), b3.complement(b));
+            assert(not_a_and_b == not_a_or_not_b);
+        }
+    }
+
+    std::cout << "  -> Passed (Tables, Laws, Monoid, Z_6 Subgroups, (Z/8Z)* =~ V_4, Boolean Algebra De Morgan)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -1486,6 +1631,7 @@ int main() {
     test_dsu_and_minimum_spanning_tree();
     test_network_flow_and_max_flow_min_cut();
     test_shortest_paths_suite();
+    test_algebra_subsystem();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;

@@ -143,6 +143,30 @@ DiscreteX separates semantic relations from execution graphs via concepts:
 - General Chinese Remainder Theorem (`chinese_remainder_theorem`) supporting both pairwise coprime and non-coprime moduli.
 - **Divisibility Lattice Bridge**: Proof that the divisibility poset $D_n = (\\{d \\mid n\\}, \\mid)$ forms a distributive lattice with meet $\\gcd(u, v)$ and join $\\text{lcm}(u, v)$, whose Hasse diagram for square-free $n$ is isomorphic to the hypercube graph $Q_k$.
 
+### 7. Abstract Algebra & Morphisms (`discretex/algebra`)
+- **Operation Tables (`algebra/operation_table.hpp`)**:
+  - Flat $n \\times n$ row-major Cayley tables over finite domains with $O(1)$ lookups.
+  - Construction from callables (`from_callable`) with boundary closure validation.
+- **Algebraic Law Verification (`algebra/laws.hpp`)**:
+  - Single operation laws: `is_associative` ($O(n^3)$), `is_commutative`, `find_identity`, `has_identity`, `inverse_table`, `has_inverses`, and `is_idempotent`.
+  - Dual operation laws: `is_distributive`, `is_absorptive`, and `satisfies_boolean_complements`.
+- **Finite Monoids & Groups (`algebra/monoid.hpp`, `algebra/group.hpp`)**:
+  - `finite_monoid`: Validated associative structures with two-sided identity elements.
+  - `finite_group`: Invertible monoids with $O(1)$ element inverse lookups, `is_abelian`, element orders (`element_order`), and subgroup verification (`is_subgroup`).
+- **Morphisms & Isomorphisms (`algebra/morphism.hpp`)**:
+  - Explicit mapping representations `std::vector<std::size_t>`.
+  - Verification of operation preservation (`is_homomorphism`), injectivity, surjectivity, and bijectivity.
+  - Structure isomorphism testing (`is_isomorphism`), kernel extraction (`kernel`), and image ranges (`image`).
+- **Finite Boolean Algebras (`algebra/boolean_algebra.hpp`)**:
+  - Algebraic structures $(B, \\lor, \\land, \\bar{\\cdot}, \\bot, \\top)$ with verified lattice absorption, mutual distributivity, and De Morgan complementation.
+- **Builders & Cross-Subsystem Bridges (`algebra/builders.hpp`)**:
+  - `cyclic_group(n)`: Additive cyclic group $(\\mathbb{Z}/n\\mathbb{Z}, +)$.
+  - `unit_group_mod_n(n)`: Multiplicative group of units $(\\mathbb{Z}/n\\mathbb{Z})^\\times$.
+  - `klein_four_group()`: Klein four-group $V_4 \\cong \\mathbb{Z}_2 \\times \\mathbb{Z}_2$.
+  - `power_set_boolean_algebra(k)`: Boolean algebra $\\mathcal{P}(\\{0, \\dots, k-1\\})$ of size $2^k$.
+  - Structural isomorphism bridge: Certified isomorphism $(\\mathbb{Z}/8\\mathbb{Z})^\\times \\cong V_4$.
+  - First Isomorphism Theorem bridge: Quotient reduction $\\pi: \\mathbb{Z}_6 \\to \\mathbb{Z}_3$ with $\\ker(\\pi) = \\{0, 3\\} \\le \\mathbb{Z}_6$.
+
 ---
 
 ## Build and Test
