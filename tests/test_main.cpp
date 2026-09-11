@@ -1167,6 +1167,139 @@ void test_dsu_and_minimum_spanning_tree() {
     std::cout << "  -> Passed (DSU, Kruskal == Prim, brute-force optimality, MSF invariant |V|-c)\n";
 }
 
+void test_network_flow_and_max_flow_min_cut() {
+    std::cout << "[Test] Graph Theory: Network Flow (Edmonds-Karp, Dinic) & Max-Flow Min-Cut Bridge...\n";
+    using namespace discretex;
+    using namespace discretex::algorithms;
+
+    // 1. Classic Network Flow
+    // Vertices: 0 (source), 1, 2, 3, 4, 5 (sink)
+    flow_network<int> net(6);
+    net.add_edge(0, 1, 16);
+    net.add_edge(0, 2, 13);
+    net.add_edge(1, 2, 10);
+    net.add_edge(1, 3, 12);
+    net.add_edge(2, 1, 4);
+    net.add_edge(2, 4, 14);
+    net.add_edge(3, 2, 9);
+    net.add_edge(3, 5, 20);
+    net.add_edge(4, 3, 7);
+    net.add_edge(4, 5, 4);
+
+    assert(net.vertex_count() == 6);
+    assert(net.edge_count() == 10);
+
+    auto res_ek = max_flow_edmonds_karp(net, 0, 5);
+    auto res_dinic = max_flow_dinic(net, 0, 5);
+    auto res_canon = max_flow(net, 0, 5);
+
+    // Textbook solution: max flow = 23
+    assert(res_ek.max_flow == 23);
+    assert(res_dinic.max_flow == 23);
+    assert(res_canon.max_flow == 23);
+
+    // Verify flow conservation & capacity limits
+    assert(verify_flow_conservation(net, res_ek, 0, 5));
+    assert(verify_flow_conservation(net, res_dinic, 0, 5));
+
+    // Verify Max-Flow Min-Cut theorem: max flow == cut capacity
+    assert(res_ek.source_side_min_cut[0] == true);
+    assert(res_ek.source_side_min_cut[5] == false);
+    assert(res_dinic.source_side_min_cut[0] == true);
+    assert(res_dinic.source_side_min_cut[5] == false);
+
+    int cut_cap_ek = compute_cut_capacity(net, res_ek.source_side_min_cut);
+    int cut_cap_dinic = compute_cut_capacity(net, res_dinic.source_side_min_cut);
+    assert(cut_cap_ek == 23);
+    assert(cut_cap_dinic == 23);
+
+    // 2. Parallel Edges and Disconnected Networks
+    flow_network<int> net_parallel(3);
+    net_parallel.add_edge(0, 1, 5);
+    net_parallel.add_edge(0, 1, 10); // parallel edge
+    net_parallel.add_edge(1, 2, 12);
+    auto res_parallel = max_flow_dinic(net_parallel, 0, 2);
+    assert(res_parallel.max_flow == 12); // bottleneck is 12
+    assert(compute_cut_capacity(net_parallel, res_parallel.source_side_min_cut) == 12);
+
+    flow_network<int> net_disc(4);
+    net_disc.add_edge(0, 1, 10);
+    net_disc.add_edge(2, 3, 10);
+    auto res_disc = max_flow_dinic(net_disc, 0, 3);
+    assert(res_disc.max_flow == 0);
+
+    // 3. Cross-module Bridge: Bipartite Matching via Max Flow Reduction
+    // Create the same bipartite graph tested in test_bipartite_matching_and_koenig():
+    // Left: 4 vertices, Right: 4 vertices
+    // Edges: (0,0), (0,1), (1,1), (2,2), (3,2), (3,3)
+    bipartite_graph bg(4, 4);
+    bg.add_edge(0, 0);
+    bg.add_edge(0, 1);
+    bg.add_edge(1, 1);
+    bg.add_edge(2, 2);
+    bg.add_edge(3, 2);
+    bg.add_edge(3, 3);
+
+    auto m_hk = maximum_bipartite_matching_hopcroft_karp(bg);
+    assert(m_hk.matching_size == 4);
+
+    // Reduction to Unit Flow Network:
+    // S = 0
+    // Left: 1, 2, 3, 4 (u -> 1 + u)
+    // Right: 5, 6, 7, 8 (v -> 5 + v)
+    // T = 9
+    flow_network<int> flow_match_net(10);
+    std::size_t S = 0, T = 9;
+    for (std::size_t u = 0; u < 4; ++u) {
+        flow_match_net.add_edge(S, 1 + u, 1);
+    }
+    for (std::size_t u = 0; u < 4; ++u) {
+        for (std::size_t v : bg.right_neighbors(u)) {
+            flow_match_net.add_edge(1 + u, 5 + v, 1);
+        }
+    }
+    for (std::size_t v = 0; v < 4; ++v) {
+        flow_match_net.add_edge(5 + v, T, 1);
+    }
+
+    auto flow_match_res = max_flow_dinic(flow_match_net, S, T);
+    // 1. Max flow must equal maximum matching size!
+    assert(flow_match_res.max_flow == static_cast<int>(m_hk.matching_size));
+
+    // 2. The min-cut induces Koenig's minimum vertex cover:
+    // Left vertices on sink side (not in source_side_min_cut)
+    // Right vertices on source side (in source_side_min_cut)
+    std::vector<std::size_t> flow_cover_l;
+    std::vector<std::size_t> flow_cover_r;
+    for (std::size_t u = 0; u < 4; ++u) {
+        if (!flow_match_res.source_side_min_cut[1 + u]) {
+            flow_cover_l.push_back(u);
+        }
+    }
+    for (std::size_t v = 0; v < 4; ++v) {
+        if (flow_match_res.source_side_min_cut[5 + v]) {
+            flow_cover_r.push_back(v);
+        }
+    }
+
+    // Min cover cardinality == Max matching size
+    assert(flow_cover_l.size() + flow_cover_r.size() == m_hk.matching_size);
+
+    // Assert that every bipartite edge is covered by (flow_cover_l union flow_cover_r)
+    auto is_covered = [&](std::size_t u, std::size_t v) {
+        bool in_l = std::find(flow_cover_l.begin(), flow_cover_l.end(), u) != flow_cover_l.end();
+        bool in_r = std::find(flow_cover_r.begin(), flow_cover_r.end(), v) != flow_cover_r.end();
+        return in_l || in_r;
+    };
+    for (std::size_t u = 0; u < bg.left_size(); ++u) {
+        for (std::size_t v : bg.right_neighbors(u)) {
+            assert(is_covered(u, v));
+        }
+    }
+
+    std::cout << "  -> Passed (Edmonds-Karp == Dinic, Max-Flow Min-Cut duality, Bipartite Matching reduction)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -1190,6 +1323,7 @@ int main() {
     test_two_sat_implication_engine();
     test_bipartite_matching_and_koenig();
     test_dsu_and_minimum_spanning_tree();
+    test_network_flow_and_max_flow_min_cut();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;

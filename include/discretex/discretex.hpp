@@ -14,6 +14,7 @@
 #include "graph/sparse_graph.hpp"
 #include "graph/bipartite_graph.hpp"
 #include "graph/weighted_graph.hpp"
+#include "graph/flow_network.hpp"
 
 // Views
 #include "views/transpose_view.hpp"
@@ -25,6 +26,7 @@
 #include "algorithms/condensation.hpp"
 #include "algorithms/bipartite_matching.hpp"
 #include "algorithms/minimum_spanning_tree.hpp"
+#include "algorithms/network_flow.hpp"
 
 // Combinatorics
 #include "combinatorics/counting.hpp"

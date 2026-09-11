@@ -43,6 +43,16 @@ DiscreteX separates semantic relations from execution graphs via concepts:
   - Component tracking (`component_count`, `component_size`, `components`) and equivalence partition export (`to_rgs`).
 
 ### 2. Graph Algorithms & Structural Connectivity (`discretex/algorithms`, `discretex/graph`)
+- **Flow Networks (`graph/flow_network.hpp`)**:
+  - Dedicated semantic network `flow_network<Capacity, Dom>` maintaining directed capacity edges alongside linked residual edge pairs (`residual_edge<Capacity>`).
+  - Constant-time $O(1)$ reverse residual updates via mutual `rev` index tracking.
+  - Retains immutable original network definition with support for parallel edges and self-loops.
+- **Maximum Flow & Minimum Cut (`algorithms/network_flow.hpp`)**:
+  - `max_flow_edmonds_karp`: Augmenting path algorithm via BFS in $O(|V| \cdot |E|^2)$.
+  - `max_flow_dinic`: Layered BFS level-graph construction with DFS blocking flows and current-edge pointer optimization in $O(|V|^2 |E|)$ (and $O(|E|\sqrt{|V|})$ on unit networks).
+  - `flow_result<Capacity>`: Reports maximum flow, source-side minimum cut indicator ($S \subseteq V$), and per-edge flow values.
+  - Invariants: Flow conservation verification (`verify_flow_conservation`) and Max-Flow Min-Cut duality verification (`compute_cut_capacity`).
+  - Reduction bridge: Exact reduction of bipartite matching to unit flow networks, recovering matching size $|M|$ and König's minimum vertex cover $|C|$.
 - **Weighted Graphs (`graph/weighted_graph.hpp`)**:
   - Structured `weighted_edge<Weight>` and `weighted_neighbor<Weight>` supporting arbitrary ordered weight types.
   - `weighted_undirected_graph<Weight, Dom>` with dual flat-edge list and adjacency-list models.
