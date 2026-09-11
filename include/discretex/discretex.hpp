@@ -25,3 +25,8 @@
 
 // Order Theory
 #include "order/poset.hpp"
+
+// Logic
+#include "logic/formula.hpp"
+#include "logic/truth_table.hpp"
+#include "logic/normal_forms.hpp"

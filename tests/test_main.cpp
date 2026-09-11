@@ -260,6 +260,161 @@ void test_poset_and_boolean_lattice() {
     std::cout << "  -> Passed (Boolean Lattice B3 verified with Hypercube Q3 Hasse diagram)\n";
 }
 
+void test_propositional_logic() {
+    std::cout << "[Test] Milestone 4: Propositional Logic AST, Truth Tables & Normal Forms...\n";
+    using namespace discretex::logic;
+
+    auto p = var(0);
+    auto q = var(1);
+    auto r = var(2);
+
+    // 1. Evaluation & Operator Overloads
+    auto f1 = p && q;
+    assert(evaluate(f1, 0b00) == false); // p=0, q=0
+    assert(evaluate(f1, 0b01) == false); // p=1, q=0
+    assert(evaluate(f1, 0b10) == false); // p=0, q=1
+    assert(evaluate(f1, 0b11) == true);  // p=1, q=1
+
+    auto f2 = p || !q;
+    assert(evaluate(f2, 0b00) == true);
+    assert(evaluate(f2, 0b10) == false); // p=0, q=1 -> 0 || 0 = 0
+    assert(evaluate(f2, 0b01) == true);
+    assert(evaluate(f2, 0b11) == true);
+
+    // 2. Truth Tables & Semantic Classification
+    // Law of Excluded Middle: p | ~p is a tautology
+    auto lem = p || !p;
+    assert(is_tautology(lem));
+    assert(!is_contradiction(lem));
+    assert(is_satisfiable(lem));
+
+    // Modus Ponens valid implication: ((p -> q) & p) -> q
+    auto mp = implies_(implies_(p, q) && p, q);
+    assert(is_tautology(mp));
+
+    // Contradiction: p & ~p
+    auto contra = p && !p;
+    assert(is_contradiction(contra));
+    assert(!is_tautology(contra));
+    assert(!is_satisfiable(contra));
+
+    // Equivalence: p -> q <=> ~p | q
+    auto imp_form = implies_(p, q);
+    auto disj_form = !p || q;
+    assert(equivalent(imp_form, disj_form));
+
+    // De Morgan Equivalence: ~(p & q) <=> ~p | ~q
+    auto de_morgan_lhs = !(p && q);
+    auto de_morgan_rhs = !p || !q;
+    assert(equivalent(de_morgan_lhs, de_morgan_rhs));
+
+    // Entailment: (p & q) |= p
+    assert(entails(p && q, p));
+    assert(!entails(p, p && q));
+    assert(entails(p, p || q));
+
+    // 3. Normal Forms (NNF, DNF, CNF)
+    auto complex_formula = iff_(p && implies_(q, r), !(p || !r));
+
+    // NNF preserves equivalence
+    auto nnf_form = to_nnf(complex_formula);
+    assert(equivalent(complex_formula, nnf_form));
+
+    // Algebraic DNF & CNF preserve equivalence
+    auto dnf_form = to_dnf(complex_formula);
+    assert(equivalent(complex_formula, dnf_form));
+
+    auto cnf_form = to_cnf(complex_formula);
+    assert(equivalent(complex_formula, cnf_form));
+
+    // Canonical DNF & CNF from truth table preserve equivalence
+    auto c_dnf = to_canonical_dnf(complex_formula);
+    assert(equivalent(complex_formula, c_dnf));
+
+    auto c_cnf = to_canonical_cnf(complex_formula);
+    assert(equivalent(complex_formula, c_cnf));
+
+    // Test simplification in DNF/CNF:
+    // (p & ~p) in DNF simplifies to false
+    assert(to_dnf(p && !p) == boolean(false));
+    // (p | ~p) in CNF simplifies to true
+    assert(to_cnf(p || !p) == boolean(true));
+
+    std::cout << "  -> Passed (Evaluation, Tautologies, Equivalences, NNF, DNF, CNF)\n";
+}
+
+void test_valuation_space_bridge() {
+    std::cout << "[Test] Milestone 4 Bridge: Valuation Algebra & Boolean Lattice Isomorphism...\n";
+    using namespace discretex::logic;
+
+    // 3 variables: p=x0, q=x1, r=x2 -> 8 valuations [0..7]
+    std::size_t num_vars = 3;
+    std::size_t num_valuations = 1ULL << num_vars; // 8
+
+    auto p = var(0);
+    auto q = var(1);
+    auto r = var(2);
+
+    auto f = p || q;
+    auto g = q && r;
+
+    truth_table tt_f(f, num_vars);
+    truth_table tt_g(g, num_vars);
+    truth_table tt_and(f && g, num_vars);
+    truth_table tt_or(f || g, num_vars);
+    truth_table tt_not(!f, num_vars);
+
+    auto sat_f = tt_f.satisfying_assignments();
+    auto sat_g = tt_g.satisfying_assignments();
+    auto sat_and = tt_and.satisfying_assignments();
+    auto sat_or = tt_or.satisfying_assignments();
+    auto sat_not = tt_not.satisfying_assignments();
+
+    // Convert to bitmasks representing subsets of valuation space
+    auto to_val_mask = [](const std::vector<std::size_t>& assignments) {
+        uint64_t mask = 0;
+        for (std::size_t a : assignments) {
+            mask |= (1ULL << a);
+        }
+        return mask;
+    };
+
+    uint64_t mask_f = to_val_mask(sat_f);
+    uint64_t mask_g = to_val_mask(sat_g);
+    uint64_t mask_and = to_val_mask(sat_and);
+    uint64_t mask_or = to_val_mask(sat_or);
+    uint64_t mask_not = to_val_mask(sat_not);
+
+    // 1. Meet corresponds to bitwise intersection of valuations
+    assert(mask_and == (mask_f & mask_g));
+
+    // 2. Join corresponds to bitwise union of valuations
+    assert(mask_or == (mask_f | mask_g));
+
+    // 3. Complement corresponds to relative complement in V_n
+    uint64_t universe_mask = (1ULL << num_valuations) - 1ULL;
+    assert(mask_not == (~mask_f & universe_mask));
+
+    // 4. Entailment corresponds to subset inclusion in the Boolean lattice
+    assert(entails(f && g, f));
+    assert((mask_and | mask_f) == mask_f); // Sat(f & g) subset of Sat(f)
+
+    // 5. Connect to poset: Poset of valuations under inclusion is a lattice
+    index_domain val_dom(num_valuations);
+    dense_relation val_rel(val_dom);
+    for (std::size_t u = 0; u < num_valuations; ++u) {
+        for (std::size_t v = 0; v < num_valuations; ++v) {
+            if ((u | v) == v) {
+                val_rel.add_pair(u, v);
+            }
+        }
+    }
+    poset val_lattice(std::move(val_rel));
+    assert(val_lattice.is_lattice());
+
+    std::cout << "  -> Passed (Valuation subsets isomorphic to Boolean Lattice operations)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -272,7 +427,10 @@ int main() {
     test_unified_bfs();
     test_combinatorics();
     test_poset_and_boolean_lattice();
+    test_propositional_logic();
+    test_valuation_space_bridge();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;
 }
+
