@@ -1,0 +1,37 @@
+name: DiscreteX CI
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build & Test (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ g++, clang++ ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Verify Makefile Build, Tests, and Examples
+        env:
+          CXX: ${{ matrix.compiler }}
+        run: |
+          make clean
+          make test
+          make examples
+
+      - name: Verify CMake Target Export and Packaging
+        env:
+          CXX: ${{ matrix.compiler }}
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DDISCRETEX_BUILD_TESTS=ON -DDISCRETEX_BUILD_EXAMPLES=ON
+          cmake --build build --parallel
+          ctest --test-dir build --output-on-failure

@@ -1,10 +1,23 @@
 # DiscreteX
 
-DiscreteX is a modern, unified C++20 library for discrete mathematics and discrete structures.
+[![CI](https://github.com/nijuna/DiscreteX/actions/workflows/ci.yml/badge.svg)](https://github.com/nijuna/DiscreteX/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/badge/release-v1.0.0-blue.svg)](https://github.com/nijuna/DiscreteX/releases/tag/v1.0.0)
+[![Standard](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+DiscreteX is a modern, unified C++20 library for finite discrete mathematics and discrete structures.
 
 In the standard C++ ecosystem, discrete mathematics is fragmented: graph libraries, combinatorics utilities, logic engines, and number-theoretic algorithms often use conflicting abstractions, bespoke container types, and inconsistent indexing models. 
 
 The goal of DiscreteX is to unify these domains into a mathematically coherent, high-performance C++20 library. In DiscreteX, structures are not isolated: partially ordered sets naturally produce directed acyclic graphs; propositional valuation spaces are isomorphic to Boolean lattices; 2-SAT satisfiability reduces to strongly connected components in implication graphs; integer partitions and set partitions connect directly with equivalence relations; and divisibility relations on integers form distributive lattices that share the exact same order-theoretic and graph algorithms.
+
+---
+
+## Documentation
+
+- **[Architectural Overview and System Design](docs/architecture.md)**: Comprehensive analysis of the two-tier domain identity model, 64-bit hardware-accelerated bit-matrices, concept abstractions, cross-subsystem bridges, and theoretical asymptotic bounds.
+- **[Theory-to-Code Tour](docs/theory_to_code_tour.md)**: Guided walkthrough of the 5 primary mathematical pipelines mapping formal theorems directly to verified C++20 code.
+- **[Release Notes v1.0.0](docs/release_notes_v1.0.0.md)**: Complete v1.0.0 release highlights, supported mathematical domain taxonomy, and API stability guarantees.
 
 ---
 
@@ -317,12 +330,19 @@ All algorithms, models, and cross-subsystem bridges are compiled with `-std=c++2
 
 ```
 DiscreteX/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── CMakeLists.txt
 ├── Makefile
 ├── README.md
 ├── LICENSE
 ├── cmake/
 │   └── DiscreteXConfig.cmake.in
+├── docs/
+│   ├── architecture.md
+│   ├── release_notes_v1.0.0.md
+│   └── theory_to_code_tour.md
 ├── examples/
 │   ├── network_flow_min_cut.cpp
 │   ├── quotient_group_isomorphism.cpp
