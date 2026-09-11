@@ -5,238 +5,103 @@
 [![Standard](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-DiscreteX is a modern C++20 header-only library for finite discrete mathematics and algorithmic structures. It uses a bridge-driven architecture to connect abstract algebra, automata theory, propositional logic, graph theory, order theory, and combinatorics through coherent reusable abstractions. Built around a two-tier domain identity model, 64-bit hardware-accelerated bit-matrices, zero third-party dependencies, and fully verified test coverage.
+DiscreteX is a modern C++20 header-only library for finite discrete mathematics and algorithmic structures. It connects graph algorithms, automata, logic, abstract algebra, order theory, combinatorics, and number theory through shared abstractions rather than isolated modules. Internally, algorithms execute over contiguous index domains for cache-efficient performance; externally, mapped domains preserve ergonomic user-facing semantics. The library has zero third-party dependencies and is fully verified with warnings-clean C++20 builds.
 
-In the standard C++ ecosystem, discrete mathematics is fragmented: graph libraries, combinatorics utilities, logic engines, and number-theoretic algorithms often use conflicting abstractions, bespoke container types, and inconsistent indexing models. 
-
-The goal of DiscreteX is to unify these domains into a mathematically coherent, high-performance C++20 library. In DiscreteX, structures are not isolated: partially ordered sets naturally produce directed acyclic graphs; propositional valuation spaces are isomorphic to Boolean lattices; 2-SAT satisfiability reduces to strongly connected components in implication graphs; integer partitions and set partitions connect directly with equivalence relations; and divisibility relations on integers form distributive lattices that share the exact same order-theoretic and graph algorithms.
+In standard C++, discrete mathematics is fragmented: graph libraries, combinatorics tools, logic engines, and number-theoretic routines rely on conflicting abstractions, bespoke container types, and inconsistent indexing models. DiscreteX establishes constructive, bidirectional bridges between these domains: partially ordered sets naturally produce directed acyclic graphs; propositional valuation spaces are isomorphic to Boolean lattices; 2-SAT satisfiability reduces to strongly connected components in implication graphs; integer and set partitions connect directly with equivalence relations; and divisibility relations form distributive lattices sharing the same order-theoretic algorithms.
 
 ---
 
-## Documentation
+## Why DiscreteX
 
-- **[Start Here: 5-Minute Orientation](docs/start_here.md)**: Fast setup, 10-line sandbox demo, learning tracks, and recommended reading path.
-- **[API Quick Reference Index](docs/api_index.md)**: Navigable reference of all 34 header files, types, algorithms, and one-line summaries.
-- **[One-Page Project Summary](docs/project_summary.md)**: Compact technical briefing of library architecture, core pipelines, and performance characteristics.
-- **[Architectural Overview and System Design](docs/architecture.md)**: Comprehensive analysis of the two-tier domain identity model, 64-bit hardware-accelerated bit-matrices, concept abstractions, cross-subsystem bridges, and theoretical asymptotic bounds.
-- **[Theory-to-Code Tour](docs/theory_to_code_tour.md)**: Guided walkthrough of the 5 primary mathematical pipelines mapping formal theorems directly to verified C++20 code.
-- **[Release Notes v1.0.0](docs/release_notes_v1.0.0.md)**: Complete v1.0.0 release highlights, supported mathematical domain taxonomy, and API stability guarantees.
-
----
-
-## Architectural Principles
-
-### 1. Two-Tier Domain System
-- **Dense Execution Identity (`index_domain`)**: Algorithms in the core execute over contiguous integer domains $[0, n)$. This guarantees maximum cache locality, array indexing, and zero mapping overhead.
-- **Semantic Mapped Identity (`mapped_domain<T>`)**: Ingestion and client APIs map arbitrary user objects (strings, custom structs, integers) to contiguous indices once at the boundary, ensuring clean ergonomics without compromising inner loop speed.
-
-### 2. Explicit C++20 Concepts
-DiscreteX separates semantic relations from execution graphs via concepts:
-- `concepts::FiniteDomain` and `concepts::IndexableDomain<T>`
-- `concepts::Relation`
-- `concepts::ForwardRelation` (requires `out_neighbors(u)`)
-- `concepts::BidirectionalRelation` (requires `in_neighbors(u)`)
-- `concepts::ForwardGraph` and `concepts::BidirectionalGraph`
-
-### 3. Dual Storage Engines & Zero-Copy Views
-- **Dense Bit-Matrix (`dense_relation`)**: Stores relations as packed 64-bit words. Row fibers are traversed via `bit_row_fiber_view` using `std::countr_zero` hardware instructions to skip empty 64-bit words in $O(1)$. In-place transitive closures run via optimized bitwise Warshall operations.
-- **Sparse Adjacency Lists (`forward_adjacency_graph`, `bidirectional_adjacency_graph`)**: Maintains sorted neighbor vectors for $O(\\log \\text{deg})$ edge queries and amortized $O(E \\log \\text{deg})$ bulk loading via `from_edges`.
-- **Zero-Copy Views (`views::transpose`)**: Provides converse relations $R^{-1}$ at zero allocation cost by flipping forward and backward neighbor accessors.
+- **Unified Mathematical Substratum**: Shared finite-domain abstractions across 9 interconnected discrete mathematics domains.
+- **Bridge-Driven Architecture**: Constructive mappings connecting algebraic quotients, automata minimization, implication graphs, and lattice representations.
+- **Cache-Locality and Mechanical Sympathy**: Internal execution over dense contiguous index domains ($[0, n)$) with $O(1)$ offsets, paired with boundary mapping (`mapped_domain<T>`).
+- **Hardware-Accelerated Bit-Matrices**: Packed 64-bit word storage using CPU bit-scan intrinsics (`std::countr_zero`) to traverse relational fibers in $O(1)$ per non-empty block.
+- **Pure C++20 with Zero Dependencies**: Requires only the C++20 standard library; validated by 25 unit test suites and 5 standalone examples with zero compiler warnings under `-Wall -Wextra -Wpedantic -O2`.
 
 ---
 
-## Implemented Subsystems
+## Cross-Domain Bridge Architecture
 
-### 1. Core Relations, Partitions & Disjoint Sets (`discretex/core`, `discretex/relation`)
-- Mathematical binary relations over finite domains with packed 64-bit word storage and bit-scan fiber traversal.
-- Equivalence relation axiom verification (`is_equivalence_relation`) requiring only `concepts::Relation`.
-- Canonical quotient set extraction (`equivalence_classes_rgs`, `equivalence_classes`, `quotient_size`).
-- Two-way bridge between set partitions and dense equivalence relations (`relation_from_partition`).
-- In-place Warshall transitive closure.
-- Generic Breadth-First Search (`algorithms::bfs`) operating uniformly across dense relations, sparse graphs, and transpose views.
-- **Disjoint Set Union (`core/dsu.hpp`)**:
-  - `disjoint_set` (alias `dsu`) over `index_domain` with path compression and union by size in amortized $O(\alpha(n))$ time.
-  - Component tracking (`component_count`, `component_size`, `components`) and equivalence partition export (`to_rgs`).
+```mermaid
+flowchart TD
+    A["Finite Domains & Mappings"] --> B["Relations & Partitions"]
+    A --> C["Graphs & Traversal"]
+    A --> D["Logic & 2-SAT"]
+    A --> E["Automata & Regex"]
+    A --> F["Order Theory & Posets"]
+    A --> G["Abstract Algebra"]
+    A --> H["Combinatorics & Number Theory"]
 
-### 2. Graph Algorithms & Structural Connectivity (`discretex/algorithms`, `discretex/graph`)
-- **Flow Networks (`graph/flow_network.hpp`)**:
-  - Dedicated semantic network `flow_network<Capacity, Dom>` maintaining directed capacity edges alongside linked residual edge pairs (`residual_edge<Capacity>`).
-  - Constant-time $O(1)$ reverse residual updates via mutual `rev` index tracking.
-  - Retains immutable original network definition with support for parallel edges and self-loops.
-- **Maximum Flow & Minimum Cut (`algorithms/network_flow.hpp`)**:
-  - `max_flow_edmonds_karp`: Augmenting path algorithm via BFS in $O(|V| \cdot |E|^2)$.
-  - `max_flow_dinic`: Layered BFS level-graph construction with DFS blocking flows and current-edge pointer optimization in $O(|V|^2 |E|)$ (and $O(|E|\sqrt{|V|})$ on unit networks).
-  - `flow_result<Capacity>`: Reports maximum flow, source-side minimum cut indicator ($S \subseteq V$), and per-edge flow values.
-  - Invariants: Flow conservation verification (`verify_flow_conservation`) and Max-Flow Min-Cut duality verification (`compute_cut_capacity`).
-  - Reduction bridge: Exact reduction of bipartite matching to unit flow networks, recovering matching size $|M|$ and König's minimum vertex cover $|C|$.
-- **Weighted Graphs (`graph/weighted_graph.hpp`)**:
-  - Structured `weighted_edge<Weight>` and `weighted_neighbor<Weight>` supporting arbitrary ordered weight types.
-  - `weighted_directed_graph<Weight, Dom>` and `weighted_undirected_graph<Weight, Dom>` with dual flat-edge list and adjacency-list models.
-  - $O(1)$ degrees, optional edge queries (`edge_weight`), and vertex/edge counts.
-- **Shortest Paths (`algorithms/shortest_paths.hpp`)**:
-  - `dag_shortest_paths`: Topological order relaxation running in $O(|V| + |E|)$, supporting negative edge weights on DAGs.
-  - `dijkstra_shortest_paths`: Min-priority queue single-source shortest paths in $O((|V| + |E|) \log |V|)$ for non-negative weights.
-  - `bellman_ford_shortest_paths`: Single-source shortest paths in $O(|V| \cdot |E|)$ supporting arbitrary signed weights and detecting reachable negative cycles.
-  - `floyd_warshall_all_pairs`: Dynamic programming all-pairs shortest paths in $O(|V|^3)$ with next-hop matrices and negative cycle detection.
-  - Results and Reconstruction: `shortest_path_result`, `bellman_ford_result`, and `all_pairs_shortest_path_result` using `std::optional<Weight>` distances, with lazy path reconstruction (`reconstruct_path`) and integrity verification (`verify_path_integrity`).
-- **Minimum Spanning Trees & Forests (`algorithms/minimum_spanning_tree.hpp`)**:
-  - `minimum_spanning_tree_kruskal`: Kruskal's algorithm in $O(E \log E + E \alpha(V))$ using DSU.
-  - `minimum_spanning_tree_prim`: Prim's algorithm in $O(E \log V)$ using min-priority queues.
-  - Returns `spanning_forest_result<Weight>` with edge list, total weight, component count, and connectivity flag.
-  - `is_valid_spanning_forest`: Verifies structural invariants: acyclicity, exact edge count $|E| = |V| - c$, edge membership, and connectivity equivalence.
-  - `connected_components` and `connected_component_count` using DSU.
-- **Bipartite Graphs (`graph/bipartite_graph.hpp`)**:
-  - Explicit partitioned graph structure $G = (L \cup R, E)$ with zero-overhead side-local vertex indices.
-  - Sorted neighbor arrays with $O(\log \text{deg})$ edge queries and `std::span` neighbor access.
-- **Maximum Bipartite Matching (`algorithms/bipartite_matching.hpp`)**:
-  - `maximum_bipartite_matching_kuhn`: Augmenting path algorithm in $O(|V| \cdot |E|)$.
-  - `maximum_bipartite_matching_hopcroft_karp`: Layered BFS/DFS augmenting path algorithm running in $O(|E|\sqrt{|V|})$.
-  - `matching_result`: Exposes left-to-right and right-to-left mate arrays, total cardinality $|M|$, and matched edge pairs.
-- **König's Theorem Minimum Vertex Cover (`algorithms/bipartite_matching.hpp`)**:
-  - `minimum_vertex_cover`: Constructive realization of König's duality theorem ($|M| = |C|$) on bipartite graphs.
-  - Computes reachable alternating components $(Z_L, Z_R)$ from unmatched left vertices to construct the exact minimal vertex cover $C = (L \setminus Z_L) \cup Z_R$.
-- **Tarjan Strongly Connected Components (`algorithms/tarjan_scc.hpp`)**:
-  - Computes SCC decomposition in linear time $O(V + E)$ on any `concepts::ForwardRelation`.
-  - Normalizes component IDs in topological order of the condensation DAG.
-  - Returns `scc_result` providing both $O(1)$ vertex component lookup (`component_of[v]`) and explicit component member lists (`components[c]`).
-- **Condensation DAG (`algorithms/condensation.hpp`)**:
-  - Contracts each strongly connected component into a meta-vertex in `index_domain(component_count)`.
-  - Generates an acyclic `bidirectional_adjacency_graph` with automatically sorted, deduplicated cross-component edges.
-- **Topological Sorting (`algorithms/topological_sort.hpp`)**:
-  - Kahn's algorithm with cycle detection over any `concepts::ForwardRelation`.
-- **Biconnectivity, Cut Vertices & Bridges (`algorithms/connectivity.hpp`)**:
-  - `find_cut_vertices_and_bridges`: Tarjan's low-link algorithm running in $O(V + E)$ on undirected graphs.
-  - Returns `biconnectivity_result` containing articulation points (cut vertices) and bridges.
-  - Helpers: `find_cut_vertices` and `find_bridges`.
-- **Eulerian Circuits & Trails (`algorithms/eulerian.hpp`)**:
-  - Dedicated undirected predicates and tour synthesis: `has_eulerian_circuit_undirected`, `has_eulerian_trail_undirected`, and `find_eulerian_trail_undirected` via Hierholzer's algorithm in $O(V + E)$.
-  - Dedicated directed predicates and tour synthesis: `has_eulerian_circuit_directed`, `has_eulerian_trail_directed`, and `find_eulerian_trail_directed`.
-  - Returns `eulerian_result` containing the ordered vertex sequence of the Eulerian walk.
-
-### 3. Enumerative Combinatorics & Generators (`discretex/combinatorics`)
-- **Counting & Special Numbers (`counting.hpp`)**:
-  - Exact 64-bit arithmetic with overflow detection (`factorial`, `falling_factorial`, `combinations_count`).
-  - Stirling numbers of the second kind ($S(n, k)$) and unsigned Stirling numbers of the first kind ($|c(n, k)|$).
-  - Bell numbers ($B_n$), Catalan numbers ($C_n$), and unrestricted partition numbers ($p(n)$ via Euler's pentagonal theorem).
-- **Subsets & Power Sets**:
-  - `k_subsets_view`: all $\\binom{n}{k}$ combinations in lexicographical order.
-  - `power_set_view`: safe generation for $n \\le 63$ in binary counting or reflected Gray code.
-- **Permutations & Integer Partitions**:
-  - `permutations_view`: all $n!$ permutations in lexicographical order yielding `std::span<const std::size_t>`.
-  - `integer_partitions_view`: all non-increasing partitions $\\lambda \\vdash n$ summing to $n$.
-- **Set Partitions via Restricted Growth Strings (RGS)**:
-  - `set_partitions_view`: all $B_n$ set partitions represented canonically as RGS.
-  - `k_set_partitions_view`: exact direct generation of $S(n, k)$ partitions into $k$ blocks.
-- **Domain Projection**:
-  - `views::project_subsets` and `views::project_permutations` adapting index generators to user domains.
-
-### 4. Order Theory & Lattices (`discretex/order`)
-- Closure-backed partially ordered sets (`poset`).
-- Exact covering relation reduction: $C = S \\setminus (S \\circ S)$.
-- Hasse diagram construction (`poset::hasse_diagram`).
-- Topological linear extensions (`poset::linear_extension`) via Kahn's algorithm.
-- Lattice testing (`poset::is_lattice`), meets, and joins.
-- Strict constructor validation (`from_dag_closure` vs. `from_hasse_diagram` rejecting transitive shortcuts).
-
-### 5. Propositional Logic & 2-SAT Solver (`discretex/logic`)
-- Pure AST formula representation (`formula`) supporting variables, negation, conjunction, disjunction, implication, and biconditional equivalence.
-- Bitmask formula evaluation over 64-bit assignments ($O(1)$ variable lookup).
-- Truth table generator (`truth_table`) with tautology, contradiction, and satisfiability checking.
-- Semantic equivalence (`equivalent`) and logical entailment (`entails`).
-- Normal forms:
-  - Negation Normal Form (`to_nnf`) via De Morgan's laws and double-negation elimination.
-  - Algebraic DNF & CNF (`to_dnf`, `to_cnf`) via distributive laws.
-  - Canonical DNF & CNF (`to_canonical_dnf`, `to_canonical_cnf`) via minterm and maxterm expansions.
-- **2-SAT & Implication Graphs (`two_sat.hpp`)**:
-  - Structured `literal` and 2-clause representation (`clause2`, `formula_2cnf`).
-  - Direct implication graph construction ($(\\neg a \\to b) \\land (\\neg b \\to a)$).
-  - Aspvall-Plass-Tarjan linear-time 2-SAT solver (`solve_2sat`) with model extraction via topological SCC ordering.
-- **Valuation Space Bridge**: Direct isomorphism between satisfying valuation subsets and Boolean lattice operations ($\\cap \\leftrightarrow \\land$, $\\cup \\leftrightarrow \\lor$, $\\setminus \\leftrightarrow \\neg$, $\\subseteq \\leftrightarrow \\models$).
-
-### 6. Number Theory & Modular Arithmetic (`discretex/number_theory`)
-- Euclidean and Extended Euclidean algorithms (`extended_gcd`).
-- Linear Diophantine equation solver ($ax + by = c$).
-- Safe 64-bit modular arithmetic (`add_mod`, `sub_mod`, `mul_mod`, `power_mod`, `mod_inverse`).
-- Dynamic modular rings (`dynamic_mod_int`).
-- Primality testing: deterministic Miller-Rabin test for all 64-bit integers ($n < 2^{64}$).
-- Sieve of Eratosthenes (`sieve_of_eratosthenes`).
-- Canonical prime factorization (`prime_factors`).
-- Divisor enumeration (`divisors`).
-- Euler's totient function (`euler_totient`) and Carmichael function (`carmichael`).
-- Linear congruence solver ($ax \\equiv b \\pmod m$).
-- General Chinese Remainder Theorem (`chinese_remainder_theorem`) supporting both pairwise coprime and non-coprime moduli.
-- **Divisibility Lattice Bridge**: Proof that the divisibility poset $D_n = (\\{d \\mid n\\}, \\mid)$ forms a distributive lattice with meet $\\gcd(u, v)$ and join $\\text{lcm}(u, v)$, whose Hasse diagram for square-free $n$ is isomorphic to the hypercube graph $Q_k$.
-
-### 7. Abstract Algebra & Morphisms (`discretex/algebra`)
-- **Operation Tables (`algebra/operation_table.hpp`)**:
-  - Flat $n \\times n$ row-major Cayley tables over finite domains with $O(1)$ lookups.
-  - Construction from callables (`from_callable`) with boundary closure validation.
-- **Algebraic Law Verification (`algebra/laws.hpp`)**:
-  - Single operation laws: `is_associative` ($O(n^3)$), `is_commutative`, `find_identity`, `has_identity`, `inverse_table`, `has_inverses`, and `is_idempotent`.
-  - Dual operation laws: `is_distributive`, `is_absorptive`, and `satisfies_boolean_complements`.
-- **Finite Monoids & Groups (`algebra/monoid.hpp`, `algebra/group.hpp`)**:
-  - `finite_monoid`: Validated associative structures with two-sided identity elements.
-  - `finite_group`: Invertible monoids with $O(1)$ element inverse lookups, `is_abelian`, element orders (`element_order`), and subgroup verification (`is_subgroup`).
-- **Morphisms & Isomorphisms (`algebra/morphism.hpp`)**:
-  - Explicit mapping representations `std::vector<std::size_t>`.
-  - Verification of operation preservation (`is_homomorphism`), injectivity, surjectivity, and bijectivity.
-  - Structure isomorphism testing (`is_isomorphism`), kernel extraction (`kernel`), and image ranges (`image`).
-- **Finite Boolean Algebras (`algebra/boolean_algebra.hpp`)**:
-  - Algebraic structures $(B, \\lor, \\land, \\bar{\\cdot}, \\bot, \\top)$ with verified lattice absorption, mutual distributivity, and De Morgan complementation.
-- **Quotient Groups & First Isomorphism Theorem (`algebra/quotient.hpp`)**:
-  - `is_normal_subgroup`: Verifies subgroup closure and conjugation invariance ($g \\cdot h \\cdot g^{-1} \\in H$).
-  - `coset_partition`: Partitions group elements into disjoint left cosets $gH$, extracting member sets and canonical $O(1)$ projection maps.
-  - `quotient_group`: Constructs the quotient group $G / H$ as a first-class `finite_group<index_domain>` with verified coset multiplication $(aH)(bH) = (ab)H$.
-  - `certify_first_isomorphism_theorem`: Constructive realization of the First Isomorphism Theorem for Groups ($G / \ker(f) \cong \text{im}(f)$), certifying structure-preserving bijections between cosets and image elements.
-- **Builders & Cross-Subsystem Bridges (`algebra/builders.hpp`)**:
-  - `cyclic_group(n)`: Additive cyclic group $(\mathbb{Z}/n\mathbb{Z}, +)$.
-  - `unit_group_mod_n(n)`: Multiplicative group of units $(\mathbb{Z}/n\mathbb{Z})^\times$.
-  - `klein_four_group()`: Klein four-group $V_4 \cong \mathbb{Z}_2 \times \mathbb{Z}_2$.
-  - `power_set_boolean_algebra(k)`: Boolean algebra $\mathcal{P}(\{0, \dots, k-1\})$ of size $2^k$.
-  - Structural isomorphism bridge: Certified isomorphism $(\mathbb{Z}/8\mathbb{Z})^\times \cong V_4$.
-  - First Isomorphism Theorem bridge: Certified quotient isomorphisms $\mathbb{Z}_6 / \{0, 3\} \cong \mathbb{Z}_3$, $\mathbb{Z}_{12} / \{0, 4, 8\} \cong \mathbb{Z}_4$, and $S_3 / A_3 \cong \mathbb{Z}_2$.
-
-### 8. Automata & Formal Languages (`discretex/automata`)
-- **Deterministic Finite Automata (`automata/dfa.hpp`)**:
-  - Dense total transition table of size $|Q| \times |\Sigma|$ (`transitions_[q * \Sigma + a]`) with $O(1)$ state transitions.
-  - Totality enforcement ensuring every state has defined transitions for every symbol in the alphabet.
-  - Start state configuration, characteristic boolean vector of accepting states, and generic word acceptance (`accepts`).
-- **Nondeterministic Finite Automata (`automata/nfa.hpp`)**:
-  - Sparse set-valued symbol transitions (`transitions(q, a)`) returning `std::span<const std::size_t>`.
-  - Separate representation of spontaneous $\varepsilon$-transitions (`epsilon_transitions(q)`).
-  - Single initial start state, accepting states, and dynamic edge addition (`add_transition`, `add_epsilon_transition`).
-- **Structural Automata Algorithms & Bridges (`automata/algorithms.hpp`)**:
-  - `state_set`: Dense 64-bit word packed bitset representation for state subsets with three-way comparison (`<=>`) and set unions.
-  - $\varepsilon$-Closure (`epsilon_closure`, `epsilon_closure_set`): BFS reachability over $\varepsilon$-edges from single states and arbitrary state collections.
-  - Direct NFA Acceptance (`accepts`): Step-by-step subset tracking with transitive $\varepsilon$-closure evaluation.
-  - Subset Construction (`subset_construction`, `determinize`): Powerset construction producing canonical total DFAs alongside inspectable subset mappings (`dfa_state_to_nfa_subset`). Certified language equivalence between NFA and determinized DFA.
-  - Complementation (`complement`): Fast $O(|Q|)$ inversion of accepting states on total DFAs, with involution invariance ($\overline{\overline{D}} \cong D$).
-  - Product Intersection (`intersect`): Direct synchronous product automaton on $Q_1 \times Q_2$ with reachability trimming, certifying $L(D_1 \cap D_2) = L(D_1) \cap L(D_2)$.
-  - Reachability Trimming (`trim_unreachable`): Breadth-first elimination of unreachable states and dense renumbering to $[0, k)$.
-  - Hopcroft Partition Refinement Minimization (`minimize_dfa`, `minimize_dfa_with_partition`):
-    - Computes minimal quotient DFA in $O(|\Sigma| \cdot |Q| \log |Q|)$ time using inverse transition precomputation and partition splitting.
-    - Produces canonical state numbering with start block indexed at 0 and remaining blocks ordered by minimum element.
-    - **Equivalence Relation Bridge**: Minimization partition blocks are certified as a mathematical equivalence relation via `relation_from_partition`, directly connecting automata minimization to the quotient and partition algebra subsystem.
-  - Language Equivalence (`language_equivalent`, `is_language_equivalent`): Product state space exploration verifying language identity between arbitrary DFAs.
-  - Language Decision Procedures:
-    - `is_empty_language`: Reachability verification of accepting states in $O(|Q| \cdot |\Sigma|)$ on DFAs and NFAs ($L = \emptyset$).
-    - `is_universal_language`: Full state acceptance verification on total DFAs ($L(D) = \Sigma^*$).
-    - `is_language_included`: Product state space exploration verifying $L(D_1) \subseteq L(D_2) \iff L(D_1) \cap \overline{L(D_2)} = \emptyset$.
-- **Regular Expressions & Compilation Pipeline (`automata/regex.hpp`)**:
-  - Pure AST node hierarchy (`regex`, `regex_node`, `regex_op`) supporting $\emptyset$, $\varepsilon$, literals, concatenation, alternation, and Kleene star.
-  - Fluent algebraic operator overloads: `operator+` for concatenation and `operator|` for alternation.
-  - Thompson Inductive Construction (`thompson_construction`, `to_nfa`): Inductive fragment composition with single start and single accept endpoints compiling any regex into an equivalent $\varepsilon$-NFA.
-  - Closed-Loop Pipeline (`to_dfa`, `to_min_dfa`): Complete compilation chain $\text{Regex} \xrightarrow{\text{Thompson}} \text{NFA} \xrightarrow{\text{Powerset}} \text{DFA} \xrightarrow{\text{Hopcroft}} \text{DFA}_{\min}$.
+    B --> F
+    B --> G
+    C --> D
+    E --> B
+    H --> F
+    G --> B
+```
 
 ---
 
-## Integration and Installation
+## Quick Start
 
-DiscreteX is a header-only library requiring ISO C++20. It has zero external dependencies beyond the standard library.
+### Fastest First Steps
+1. **Orientation**: Read [Start Here: 5-Minute Orientation](docs/start_here.md) for domain tracks and mental models.
+2. **Build Examples**: Run `make examples` to compile and execute all 5 curated programs.
+3. **Run Test Suites**: Run `make test` to verify all 25 test suites.
+
+### Minimal Example
+
+A complete, self-contained example constructing a weighted directed graph and computing single-source shortest paths:
+
+```cpp
+#include <iostream>
+#include <discretex/discretex.hpp>
+
+int main() {
+    using namespace discretex;
+
+    // Construct a weighted directed graph with 4 vertices: 0, 1, 2, 3
+    weighted_directed_graph<int> g(4);
+    g.add_edge(0, 1, 3);
+    g.add_edge(1, 2, 2);
+    g.add_edge(0, 2, 8);
+    g.add_edge(2, 3, 1);
+
+    // Compute single-source shortest paths from vertex 0
+    auto result = algorithms::dijkstra_shortest_paths(g, 0);
+    auto path = algorithms::reconstruct_path(result, 3);
+
+    std::cout << "Distance to vertex 3: " << *result.distance[3] << "\n";
+    if (path) {
+        std::cout << "Path: ";
+        for (std::size_t i = 0; i < path->size(); ++i) {
+            std::cout << (*path)[i] << (i + 1 < path->size() ? " -> " : "\n");
+        }
+    }
+    return 0;
+}
+```
+
+Compile with any standard C++20 compiler:
+
+```bash
+g++ -std=c++20 -O2 -Iinclude example.cpp -o example
+./example
+# Output:
+# Distance to vertex 3: 6
+# Path: 0 -> 1 -> 2 -> 3
+```
+
+---
+
+## Installation and Integration
+
+DiscreteX is header-only and requires ISO C++20.
 
 ### Option 1: CMake FetchContent (Recommended)
 
-Incorporate DiscreteX directly into your CMake project without manual installation:
+Incorporate DiscreteX into an existing CMake build with zero manual setup:
 
 ```cmake
 include(FetchContent)
@@ -254,14 +119,15 @@ target_link_libraries(my_project PRIVATE DiscreteX::DiscreteX)
 
 ### Option 2: System-Wide Installation
 
-Install headers and CMake package configuration files:
+Install headers and CMake package targets:
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 sudo cmake --install build
 ```
 
-Then consume it in any downstream `CMakeLists.txt`:
+Consume the installed target in downstream `CMakeLists.txt`:
 
 ```cmake
 find_package(DiscreteX CONFIG REQUIRED)
@@ -272,31 +138,120 @@ target_link_libraries(my_project PRIVATE DiscreteX::DiscreteX)
 
 ### Option 3: Direct Header Inclusion
 
-Because DiscreteX is header-only, you can clone or copy the `include/` directory and add it to your compiler's include search path:
+Clone the repository and add the `include/` directory to your compiler include search path:
 
 ```bash
 g++ -std=c++20 -O2 -I/path/to/DiscreteX/include main.cpp -o my_project
 ```
 
+> **Header Organization Note**: For rapid prototyping, include the umbrella header `<discretex/discretex.hpp>`. For production codebases and faster compilation, include granular subsystem headers (e.g., `<discretex/graph/shortest_paths.hpp>`).
+
+---
+
+## Documentation
+
+- **[Start Here: 5-Minute Orientation](docs/start_here.md)**: Onboarding tracks, sandbox verification, and recommended reading paths.
+- **[API Quick Reference Index](docs/api_index.md)**: Granular reference of all 34 header files, core classes, algorithms, and asymptotic bounds.
+- **[One-Page Project Summary](docs/project_summary.md)**: Compact technical briefing on architecture, domain pipelines, and performance invariants.
+- **[Architectural Overview and System Design](docs/architecture.md)**: In-depth analysis of domain identity, bit-matrix storage, concept hierarchy, and bridge proofs.
+- **[Theory-to-Code Tour](docs/theory_to_code_tour.md)**: Direct mapping from mathematical theorems to verified C++20 implementations.
+- **[Release Notes v1.0.0](docs/release_notes_v1.0.0.md)**: Full v1.0.0 release highlights and API stability guarantees.
+
+---
+
+## Implemented Subsystems (9 Domains)
+
+For complete class references, signatures, and complexities, see the [API Quick Reference Index](docs/api_index.md).
+
+### 1. Core Relations, Partitions & Disjoint Sets (`discretex/core`, `discretex/relation`)
+- Dense relations (`dense_relation`) stored as packed 64-bit words with bitwise Warshall transitive closure.
+- Fiber iteration (`bit_row_fiber_view`) with hardware `std::countr_zero` bit-skipping.
+- Equivalence relations, quotient extraction, and set partition round-trip conversions (`relation_from_partition`).
+- Disjoint Set Union (`dsu`) with path compression, union by size ($O(\alpha(n))$), and component tracking.
+
+### 2. Graph Algorithms & Structural Connectivity (`discretex/graph`, `discretex/algorithms`)
+- Network flow: Dinic blocking flows, Edmonds-Karp, and Max-Flow Min-Cut duality certification.
+- Shortest paths: DAG topological relaxation, Dijkstra (priority queue), Bellman-Ford (negative cycle detection), and Floyd-Warshall all-pairs.
+- Minimum spanning trees: Kruskal and Prim algorithms with $|V| - c$ spanning forest invariant verification.
+- Bipartite matching: Kuhn and Hopcroft-Karp algorithms, certifying König's Theorem ($|M| = |C|$) and minimum vertex covers.
+- Connectivity & Traversals: Tarjan SCC and condensation DAGs, Tarjan biconnectivity (bridges and articulation points), and Hierholzer Eulerian trail synthesis.
+
+### 3. Enumerative Combinatorics & Generators (`discretex/combinatorics`)
+- Exact 64-bit counting: factorials, binomial coefficients, Stirling numbers ($S(n, k)$, $|c(n, k)|$), Bell numbers ($B_n$), and Catalan numbers ($C_n$).
+- Lexicographical generator views: combinations (`k_subsets_view`), power sets (`power_set_view`), and permutations (`permutations_view`).
+- Canonical set partitions via Restricted Growth Strings (RGS) and unrestricted integer partitions ($\lambda \vdash n$).
+
+### 4. Order Theory & Lattices (`discretex/order`)
+- Closure-backed partially ordered sets (`poset`) and covering relation extraction $C = \preceq \setminus (\preceq \circ \preceq)$.
+- Hasse diagram generation and topological linear extensions.
+- Lattice axiom verification: least upper bounds (joins $\vee$) and greatest lower bounds (meets $\wedge$).
+
+### 5. Propositional Logic & 2-SAT Solver (`discretex/logic`)
+- AST propositional formula representation supporting operators $\neg, \land, \lor, \to, \leftrightarrow$.
+- Truth tables, tautology checking, and normal forms (NNF, CNF, DNF).
+- Linear-time Aspvall-Plass-Tarjan 2-SAT solver reducing 2-CNF formulas to implication graphs and SCC topological models.
+- Valuation space isomorphism connecting satisfying assignment sets directly with Boolean lattice operations.
+
+### 6. Number Theory & Modular Arithmetic (`discretex/number_theory`)
+- Extended Euclidean algorithm, Bézout coefficients, and linear Diophantine equations ($ax + by = c$).
+- Dynamic modular rings $\mathbb{Z}/m\mathbb{Z}$ with safe 64-bit inverses and modular exponentiation.
+- Deterministic Miller-Rabin primality testing ($n < 2^{64}$), linear sieves, Euler's totient, and general Chinese Remainder Theorem.
+- Divisibility lattice bridge certifying that divisor posets $D_n$ form distributive lattices isomorphic to Boolean hypercubes $Q_k$ for square-free $n$.
+
+### 7. Abstract Algebra & Morphisms (`discretex/algebra`)
+- Row-major $n \times n$ Cayley tables (`operation_table`) with $O(1)$ cell lookups and callable construction.
+- Automated algebraic law checks: associativity, commutativity, identity existence, and inverses.
+- Finite monoids, groups, and Boolean algebras with De Morgan duality.
+- Normal subgroup verification, left coset partitioning, and quotient group construction ($G/H$) certifying the First Isomorphism Theorem ($G/\ker \phi \cong \text{im } \phi$).
+
+### 8. Automata & Formal Languages (`discretex/automata`)
+- Deterministic Finite Automata (`dfa`) with total transition tables and $O(1)$ transitions.
+- Nondeterministic Finite Automata (`nfa`) supporting set-valued transitions and $\varepsilon$-closures.
+- Structural algorithms: subset construction (determinization), product intersection ($L_1 \cap L_2$), and complementation.
+- Hopcroft $O(|\Sigma| \cdot |Q| \log |Q|)$ DFA minimization with equivalence relation certification on partition blocks.
+- Thompson regex compiler AST and decision procedures: language emptiness, universality, inclusion, and equivalence.
+
+```mermaid
+flowchart LR
+    A["Regex AST"] --> B["Epsilon-NFA (Thompson)"]
+    B --> C["DFA (Powerset)"]
+    C --> D["Minimal DFA (Hopcroft)"]
+    D --> E["Language Decisions"]
+```
+
+### 9. Concept Foundations & Zero-Copy Views (`discretex/concepts`, `discretex/relation`)
+- C++20 concepts: `concepts::FiniteDomain`, `concepts::Relation`, `concepts::ForwardGraph`, and `concepts::BidirectionalGraph`.
+- Zero-copy converse view (`views::transpose`) creating $R^{-1}$ at zero allocation cost.
+- Unified BFS engine operating polymorphically across dense bit-matrices, sparse adjacency graphs, and transposed views.
+
 ---
 
 ## Standalone Examples
 
-DiscreteX includes curated, standalone examples in `examples/` demonstrating core mathematical algorithms and cross-subsystem bridges:
+DiscreteX provides 5 standalone examples in `examples/` demonstrating core algorithms and cross-domain bridges:
 
-| Example Source | Subsystems Demonstrated | Key Invariants Verified |
+| Example Source | Domains Demonstrated | Key Invariants Verified |
 | :--- | :--- | :--- |
-| [`examples/regex_to_min_dfa.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/regex_to_min_dfa.cpp) | Automata, Regular Expressions | Thompson NFA, Powerset DFA, Hopcroft minimization, language inclusion and equivalence |
-| [`examples/quotient_group_isomorphism.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/quotient_group_isomorphism.cpp) | Abstract Algebra | $S_3$ permutation group, normality checks, coset quotient groups, First Isomorphism Theorem ($S_3/A_3 \cong \mathbb{Z}_2$) |
-| [`examples/network_flow_min_cut.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/network_flow_min_cut.cpp) | Graph Theory, Network Flow | Dinic blocking flow, flow conservation at all vertices, Max-Flow Min-Cut duality theorem |
-| [`examples/two_sat_solver.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/two_sat_solver.cpp) | Logic, Graph Connectivity | 2-CNF implication graphs, Tarjan SCC decomposition, Aspvall-Plass-Tarjan linear 2-SAT solver, model extraction |
-| [`examples/shortest_paths.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/shortest_paths.cpp) | Graph Theory, Shortest Paths | Dijkstra single-source shortest paths, lazy path reconstruction, path integrity certification, Floyd-Warshall |
+| [`examples/shortest_paths.cpp`](examples/shortest_paths.cpp) | Graph Theory | Dijkstra single-source shortest paths, lazy path reconstruction, and Floyd-Warshall all-pairs matrix |
+| [`examples/two_sat_solver.cpp`](examples/two_sat_solver.cpp) | Logic, Graph Theory | 2-CNF implication graph, Tarjan SCC decomposition, Aspvall-Plass-Tarjan solver, and model certification |
+| [`examples/network_flow_min_cut.cpp`](examples/network_flow_min_cut.cpp) | Graph Theory | Dinic blocking flow, intermediate vertex flow conservation, and Max-Flow Min-Cut duality |
+| [`examples/quotient_group_isomorphism.cpp`](examples/quotient_group_isomorphism.cpp) | Abstract Algebra | $S_3$ permutation group, normality checks, coset quotient groups, and First Isomorphism Theorem ($S_3/A_3 \cong \mathbb{Z}_2$) |
+| [`examples/regex_to_min_dfa.cpp`](examples/regex_to_min_dfa.cpp) | Automata Theory | Thompson NFA, Powerset DFA, Hopcroft minimization, and formal language decision procedures |
 
-Run all examples via:
+Compile and run all examples with:
 
 ```bash
 make examples
 ```
+
+---
+
+## Who This Library Is For
+
+- **Educators**: Teaching discrete mathematics, graph theory, formal languages, or abstract algebra with executable, verified computational models.
+- **Researchers**: Prototyping finite algebraic structures, posets, language decisions, and relational models.
+- **Systems & Algorithm Engineers**: High-performance graph algorithms, flow networks, 2-SAT solvers, and hardware-accelerated bit-relations with predictable cache behavior and zero dependencies.
+- **Advanced Students**: Exploring constructive bridges between discrete mathematical theory and clean ISO C++20 code.
 
 ---
 
@@ -359,65 +314,16 @@ DiscreteX/
 │   └── discretex/
 │       ├── discretex.hpp
 │       ├── algebra/
-│       │   ├── boolean_algebra.hpp
-│       │   ├── builders.hpp
-│       │   ├── group.hpp
-│       │   ├── laws.hpp
-│       │   ├── monoid.hpp
-│       │   ├── morphism.hpp
-│       │   ├── operation_table.hpp
-│       │   └── quotient.hpp
 │       ├── algorithms/
-│       │   ├── bfs.hpp
-│       │   ├── bipartite_matching.hpp
-│       │   ├── condensation.hpp
-│       │   ├── connectivity.hpp
-│       │   ├── eulerian.hpp
-│       │   ├── minimum_spanning_tree.hpp
-│       │   ├── network_flow.hpp
-│       │   ├── shortest_paths.hpp
-│       │   ├── tarjan_scc.hpp
-│       │   └── topological_sort.hpp
 │       ├── automata/
-│       │   ├── algorithms.hpp
-│       │   ├── dfa.hpp
-│       │   ├── nfa.hpp
-│       │   └── regex.hpp
 │       ├── combinatorics/
-│       │   ├── counting.hpp
-│       │   ├── integer_partitions.hpp
-│       │   ├── permutations.hpp
-│       │   ├── project.hpp
-│       │   ├── set_partitions.hpp
-│       │   └── subsets.hpp
 │       ├── concepts/
-│       │   ├── domain.hpp
-│       │   ├── graph.hpp
-│       │   └── relation.hpp
 │       ├── core/
-│       │   ├── bit_row_fiber_view.hpp
-│       │   ├── domain.hpp
-│       │   └── dsu.hpp
 │       ├── graph/
-│       │   ├── bipartite_graph.hpp
-│       │   ├── flow_network.hpp
-│       │   ├── sparse_graph.hpp
-│       │   └── weighted_graph.hpp
 │       ├── logic/
-│       │   ├── formula.hpp
-│       │   ├── normal_forms.hpp
-│       │   ├── truth_table.hpp
-│       │   └── two_sat.hpp
 │       ├── number_theory/
-│       │   ├── modular.hpp
-│       │   ├── primes.hpp
-│       │   └── properties.hpp
 │       ├── order/
-│       │   └── poset.hpp
 │       └── relation/
-│           ├── dense_relation.hpp
-│           ├── equivalence.hpp
-│           └── transpose_view.hpp
 └── tests/
     ├── test_main.cpp
     └── test_runner.hpp
