@@ -325,8 +325,7 @@ DiscreteX/
 │       ├── order/
 │       └── relation/
 └── tests/
-    ├── test_main.cpp
-    └── test_runner.hpp
+    └── test_main.cpp
 ```
 
 ---
