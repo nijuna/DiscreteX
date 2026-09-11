@@ -1019,6 +1019,154 @@ void test_bipartite_matching_and_koenig() {
     std::cout << "  -> Passed (Kuhn == Hopcroft-Karp, Koenig |M|==|C|, injectivity certification)\n";
 }
 
+void test_dsu_and_minimum_spanning_tree() {
+    std::cout << "[Test] Graph Theory: DSU, Weighted Graphs, MST (Kruskal, Prim) & Invariants...\n";
+    using namespace discretex;
+    using namespace discretex::algorithms;
+
+    // 1. Test DSU functionality
+    disjoint_set dsu(6);
+    assert(dsu.size() == 6);
+    assert(dsu.component_count() == 6);
+    for (std::size_t i = 0; i < 6; ++i) {
+        assert(dsu.component_size(i) == 1);
+        assert(dsu.connected(i, i));
+    }
+
+    assert(dsu.unite(0, 1) == true);
+    assert(dsu.unite(0, 1) == false); // already united
+    assert(dsu.unite(2, 3) == true);
+    assert(dsu.unite(4, 5) == true);
+    assert(dsu.component_count() == 3);
+    assert(dsu.component_size(0) == 2);
+    assert(dsu.component_size(1) == 2);
+    assert(dsu.connected(0, 1));
+    assert(!dsu.connected(0, 2));
+
+    assert(dsu.unite(1, 3) == true);
+    assert(dsu.component_count() == 2);
+    assert(dsu.component_size(0) == 4);
+    assert(dsu.connected(0, 3));
+    assert(dsu.connected(1, 2));
+
+    auto comps = dsu.components();
+    assert(comps.size() == 2);
+
+    // Bridge: DSU to RGS and Equivalence Relation
+    auto rgs = dsu.to_rgs();
+    assert(rgs.size() == 6);
+    // Elements in same set must have same RGS block
+    assert(rgs[0] == rgs[1] && rgs[1] == rgs[2] && rgs[2] == rgs[3]);
+    assert(rgs[4] == rgs[5]);
+    assert(rgs[0] != rgs[4]);
+
+    // Check equivalence relation generated from this RGS
+    auto rel = relation_from_partition(index_domain(6), rgs);
+    assert(is_equivalence_relation(rel));
+    assert(rel.contains(0, 3) && rel.contains(3, 0));
+    assert(!rel.contains(0, 4));
+
+    // 2. Test Weighted Undirected Graph & MST on Connected Graph
+    // 5-vertex graph:
+    // Vertices: 0, 1, 2, 3, 4
+    // Edges:
+    // (0, 1, 3), (0, 3, 7), (0, 4, 8)
+    // (1, 2, 1), (1, 3, 4)
+    // (2, 3, 2)
+    // (3, 4, 3)
+    weighted_undirected_graph<int> g(5);
+    g.add_edge(0, 1, 3);
+    g.add_edge(0, 3, 7);
+    g.add_edge(0, 4, 8);
+    g.add_edge(1, 2, 1);
+    g.add_edge(1, 3, 4);
+    g.add_edge(2, 3, 2);
+    g.add_edge(3, 4, 3);
+
+    assert(g.vertex_count() == 5);
+    assert(g.edge_count() == 7);
+    assert(g.has_edge(1, 2));
+    assert(!g.has_edge(0, 2));
+    assert(g.edge_weight(1, 2) == 1);
+    assert(g.edge_weight(0, 2) == std::nullopt);
+
+    auto mst_k = minimum_spanning_tree_kruskal(g);
+    auto mst_p = minimum_spanning_tree_prim(g);
+    auto mst_c = minimum_spanning_tree(g);
+
+    // MST edges: (1, 2, 1), (2, 3, 2), (0, 1, 3), (3, 4, 3)
+    // Total weight = 1 + 2 + 3 + 3 = 9.
+    assert(mst_k.total_weight == 9);
+    assert(mst_p.total_weight == 9);
+    assert(mst_c.total_weight == 9);
+    assert(mst_k.edges.size() == 4);
+    assert(mst_p.edges.size() == 4);
+    assert(mst_k.is_connected && mst_p.is_connected);
+    assert(mst_k.component_count == 1);
+    assert(mst_p.component_count == 1);
+
+    // Verify invariants
+    assert(is_valid_spanning_forest(g, mst_k));
+    assert(is_valid_spanning_forest(g, mst_p));
+
+    // 3. Brute-force verification on small graph:
+    // Compare Kruskal and Prim against exact global minimum over all 4-edge subsets
+    // that form spanning trees using views::k_subsets
+    int brute_force_min_weight = 999999;
+    for (auto subset : views::k_subsets(g.edge_count(), g.vertex_count() - 1)) {
+        disjoint_set check_dsu(g.vertex_count());
+        bool has_cycle = false;
+        int current_weight = 0;
+        for (std::size_t edge_idx : subset) {
+            const auto& e = g.edges()[edge_idx];
+            current_weight += e.weight;
+            if (!check_dsu.unite(e.u, e.v)) {
+                has_cycle = true;
+                break;
+            }
+        }
+        if (!has_cycle && check_dsu.component_count() == 1) {
+            if (current_weight < brute_force_min_weight) {
+                brute_force_min_weight = current_weight;
+            }
+        }
+    }
+    assert(brute_force_min_weight == 9);
+    assert(mst_k.total_weight == brute_force_min_weight);
+
+    // 4. Test Disconnected Graph (Minimum Spanning Forest)
+    // Component 1: vertices 0, 1, 2. Edges: (0, 1, 4), (1, 2, 2), (0, 2, 5) -> min weight = 2 + 4 = 6
+    // Component 2: vertices 3, 4. Edges: (3, 4, 7) -> min weight = 7
+    // Component 3: vertex 5 (isolated) -> min weight = 0
+    weighted_undirected_graph<int> g_disc(6);
+    g_disc.add_edge(0, 1, 4);
+    g_disc.add_edge(1, 2, 2);
+    g_disc.add_edge(0, 2, 5);
+    g_disc.add_edge(3, 4, 7);
+
+    assert(connected_component_count(g_disc) == 3);
+    auto disc_comps = connected_components(g_disc);
+    assert(disc_comps.size() == 3);
+
+    auto msf_k = minimum_spanning_tree_kruskal(g_disc);
+    auto msf_p = minimum_spanning_tree_prim(g_disc);
+
+    assert(!msf_k.is_connected);
+    assert(!msf_p.is_connected);
+    assert(msf_k.component_count == 3);
+    assert(msf_p.component_count == 3);
+    // Number of edges in forest = |V| - c = 6 - 3 = 3
+    assert(msf_k.edges.size() == 3);
+    assert(msf_p.edges.size() == 3);
+    assert(msf_k.total_weight == 13); // 6 + 7
+    assert(msf_p.total_weight == 13);
+
+    assert(is_valid_spanning_forest(g_disc, msf_k));
+    assert(is_valid_spanning_forest(g_disc, msf_p));
+
+    std::cout << "  -> Passed (DSU, Kruskal == Prim, brute-force optimality, MSF invariant |V|-c)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -1041,6 +1189,7 @@ int main() {
     test_tarjan_scc_and_condensation();
     test_two_sat_implication_engine();
     test_bipartite_matching_and_koenig();
+    test_dsu_and_minimum_spanning_tree();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;

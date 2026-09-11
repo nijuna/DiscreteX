@@ -31,15 +31,28 @@ DiscreteX separates semantic relations from execution graphs via concepts:
 
 ## Implemented Subsystems
 
-### 1. Core Relations & Equivalence Structures (`discretex/core`, `discretex/relation`)
+### 1. Core Relations, Partitions & Disjoint Sets (`discretex/core`, `discretex/relation`)
 - Mathematical binary relations over finite domains with packed 64-bit word storage and bit-scan fiber traversal.
 - Equivalence relation axiom verification (`is_equivalence_relation`) requiring only `concepts::Relation`.
 - Canonical quotient set extraction (`equivalence_classes_rgs`, `equivalence_classes`, `quotient_size`).
 - Two-way bridge between set partitions and dense equivalence relations (`relation_from_partition`).
 - In-place Warshall transitive closure.
 - Generic Breadth-First Search (`algorithms::bfs`) operating uniformly across dense relations, sparse graphs, and transpose views.
+- **Disjoint Set Union (`core/dsu.hpp`)**:
+  - `disjoint_set` (alias `dsu`) over `index_domain` with path compression and union by size in amortized $O(\alpha(n))$ time.
+  - Component tracking (`component_count`, `component_size`, `components`) and equivalence partition export (`to_rgs`).
 
 ### 2. Graph Algorithms & Structural Connectivity (`discretex/algorithms`, `discretex/graph`)
+- **Weighted Graphs (`graph/weighted_graph.hpp`)**:
+  - Structured `weighted_edge<Weight>` and `weighted_neighbor<Weight>` supporting arbitrary ordered weight types.
+  - `weighted_undirected_graph<Weight, Dom>` with dual flat-edge list and adjacency-list models.
+  - $O(1)$ degrees, optional edge queries (`edge_weight`), and vertex/edge counts.
+- **Minimum Spanning Trees & Forests (`algorithms/minimum_spanning_tree.hpp`)**:
+  - `minimum_spanning_tree_kruskal`: Kruskal's algorithm in $O(E \log E + E \alpha(V))$ using DSU.
+  - `minimum_spanning_tree_prim`: Prim's algorithm in $O(E \log V)$ using min-priority queues.
+  - Returns `spanning_forest_result<Weight>` with edge list, total weight, component count, and connectivity flag.
+  - `is_valid_spanning_forest`: Verifies structural invariants: acyclicity, exact edge count $|E| = |V| - c$, edge membership, and connectivity equivalence.
+  - `connected_components` and `connected_component_count` using DSU.
 - **Bipartite Graphs (`graph/bipartite_graph.hpp`)**:
   - Explicit partitioned graph structure $G = (L \cup R, E)$ with zero-overhead side-local vertex indices.
   - Sorted neighbor arrays with $O(\log \text{deg})$ edge queries and `std::span` neighbor access.

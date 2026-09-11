@@ -3,6 +3,7 @@
 // Core
 #include "core/domain.hpp"
 #include "core/relation_concepts.hpp"
+#include "core/dsu.hpp"
 
 // Storage
 #include "storage/bit_matrix.hpp"
@@ -12,6 +13,7 @@
 #include "relation/equivalence.hpp"
 #include "graph/sparse_graph.hpp"
 #include "graph/bipartite_graph.hpp"
+#include "graph/weighted_graph.hpp"
 
 // Views
 #include "views/transpose_view.hpp"
@@ -22,6 +24,7 @@
 #include "algorithms/tarjan_scc.hpp"
 #include "algorithms/condensation.hpp"
 #include "algorithms/bipartite_matching.hpp"
+#include "algorithms/minimum_spanning_tree.hpp"
 
 // Combinatorics
 #include "combinatorics/counting.hpp"
