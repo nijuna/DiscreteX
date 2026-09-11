@@ -18,6 +18,8 @@
 // Algorithms
 #include "algorithms/bfs.hpp"
 #include "algorithms/topological_sort.hpp"
+#include "algorithms/tarjan_scc.hpp"
+#include "algorithms/condensation.hpp"
 
 // Combinatorics
 #include "combinatorics/counting.hpp"
@@ -35,6 +37,7 @@
 #include "logic/formula.hpp"
 #include "logic/truth_table.hpp"
 #include "logic/normal_forms.hpp"
+#include "logic/two_sat.hpp"
 
 // Number Theory
 #include "number_theory/euclidean.hpp"

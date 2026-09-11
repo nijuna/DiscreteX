@@ -14,9 +14,28 @@ struct literal {
     std::size_t var{0};
     bool negated{false};
 
+    literal negate() const noexcept { return {var, !negated}; }
+    literal operator~() const noexcept { return negate(); }
+    literal operator!() const noexcept { return negate(); }
+
     bool operator==(const literal& o) const = default;
     auto operator<=>(const literal& o) const = default;
 };
+
+inline literal pos(std::size_t var) noexcept { return {var, false}; }
+inline literal neg(std::size_t var) noexcept { return {var, true}; }
+
+inline std::size_t literal_index(literal lit) noexcept {
+    return 2 * lit.var + (lit.negated ? 1 : 0);
+}
+
+inline std::size_t negated_index(std::size_t lit_idx) noexcept {
+    return lit_idx ^ 1;
+}
+
+inline literal index_to_literal(std::size_t idx) noexcept {
+    return {idx / 2, (idx % 2) != 0};
+}
 
 struct clause {
     std::vector<literal> literals;

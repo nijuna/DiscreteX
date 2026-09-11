@@ -811,6 +811,119 @@ void test_set_partitions_and_equivalence_bridge() {
     std::cout << "  -> Passed (B(4)=15, S(4,k) distributions, RGS round-trip, quotient sets)\n";
 }
 
+void test_tarjan_scc_and_condensation() {
+    std::cout << "[Test] Graph Theory: Tarjan Strongly Connected Components & Condensation DAG...\n";
+    using namespace discretex::algorithms;
+
+    // Graph with 5 vertices:
+    // Component 0: {0, 1, 2} (cycle: 0->1, 1->2, 2->0)
+    // Edge: 2->3
+    // Component 1: {3, 4} (cycle: 3->4, 4->3)
+    index_domain dom(5);
+    bidirectional_adjacency_graph g(dom);
+    g.add_edge(0, 1);
+    g.add_edge(1, 2);
+    g.add_edge(2, 0);
+    g.add_edge(2, 3);
+    g.add_edge(3, 4);
+    g.add_edge(4, 3);
+
+    auto scc = tarjan_scc(g);
+    assert(scc.component_count == 2);
+    assert(scc.component_of[0] == scc.component_of[1]);
+    assert(scc.component_of[1] == scc.component_of[2]);
+    assert(scc.component_of[3] == scc.component_of[4]);
+    assert(scc.component_of[0] != scc.component_of[3]);
+
+    // In topological order of condensation DAG:
+    // Component {0, 1, 2} has edge to {3, 4}, so component_of[0] < component_of[3]
+    assert(scc.component_of[0] < scc.component_of[3]);
+
+    // Condensation DAG
+    auto dag = condensation_dag(g, scc);
+    assert(dag.domain_size() == 2);
+    assert(dag.edge_count() == 1);
+    assert(dag.contains(scc.component_of[0], scc.component_of[3]));
+    assert(!dag.contains(scc.component_of[3], scc.component_of[0]));
+
+    // Isolated vertices case: each vertex is its own SCC
+    index_domain dom_iso(3);
+    bidirectional_adjacency_graph g_iso(dom_iso);
+    auto scc_iso = tarjan_scc(g_iso);
+    assert(scc_iso.component_count == 3);
+
+    std::cout << "  -> Passed (SCC decomposition, topological component ordering, condensation DAG)\n";
+}
+
+void test_two_sat_implication_engine() {
+    std::cout << "[Test] Bridge: 2-SAT Satisfiability via Implication Graph & SCC...\n";
+    using namespace discretex::logic;
+
+    // 1. Satisfiable Instance:
+    // (x0 or x1) and (~x0 or x1) and (x0 or ~x1)
+    // Only solution is x0 = true, x1 = true
+    formula_2cnf f_sat(2);
+    f_sat.add_clause(pos(0), pos(1));
+    f_sat.add_clause(neg(0), pos(1));
+    f_sat.add_clause(pos(0), neg(1));
+
+    // Inspect implication graph
+    auto imp_g = implication_graph(f_sat);
+    assert(imp_g.domain_size() == 4); // 2 literals per variable
+
+    auto res_sat = solve_2sat(f_sat);
+    assert(res_sat.satisfiable);
+    assert(res_sat.assignment.size() == 2);
+    assert(res_sat.assignment[0] == true);
+    assert(res_sat.assignment[1] == true);
+
+    // Verify assignment against every clause
+    for (const auto& cl : f_sat.clauses()) {
+        bool left_val = res_sat.assignment[cl.left.var] ^ cl.left.negated;
+        bool right_val = res_sat.assignment[cl.right.var] ^ cl.right.negated;
+        assert(left_val || right_val);
+    }
+
+    // 2. Unsatisfiable Instance:
+    // (x0 or x0) and (~x0 or ~x0)
+    // Forces x0 to be simultaneously true and false
+    formula_2cnf f_unsat(1);
+    f_unsat.add_clause(pos(0), pos(0));
+    f_unsat.add_clause(neg(0), neg(0));
+
+    auto res_unsat = solve_2sat(f_unsat);
+    assert(!res_unsat.satisfiable);
+    assert(res_unsat.assignment.empty());
+
+    // 3. 3-Variable Satisfiable Instance:
+    // (x0 or x1) and (~x1 or x2) and (~x2 or ~x0)
+    formula_2cnf f3(3);
+    f3.add_clause(pos(0), pos(1));
+    f3.add_clause(neg(1), pos(2));
+    f3.add_clause(neg(2), neg(0));
+
+    auto res_f3 = solve_2sat(f3);
+    assert(res_f3.satisfiable);
+    assert(res_f3.assignment.size() == 3);
+
+    // Cross-bridge check with Propositional Logic AST evaluation from Milestone 4:
+    // Formula: (x0 | x1) & (~x1 | x2) & (~x2 | ~x0)
+    auto p0 = var(0);
+    auto p1 = var(1);
+    auto p2 = var(2);
+    auto ast_formula = (p0 || p1) && (!p1 || p2) && (!p2 || !p0);
+
+    uint64_t bitmask_model = 0;
+    for (std::size_t i = 0; i < 3; ++i) {
+        if (res_f3.assignment[i]) {
+            bitmask_model |= (1ULL << i);
+        }
+    }
+    assert(evaluate(ast_formula, bitmask_model) == true);
+
+    std::cout << "  -> Passed (Implication graph, Aspvall-Plass-Tarjan satisfiability, model extraction)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -830,10 +943,13 @@ int main() {
     test_counting_functions();
     test_permutations_and_integer_partitions();
     test_set_partitions_and_equivalence_bridge();
+    test_tarjan_scc_and_condensation();
+    test_two_sat_implication_engine();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;
 }
+
 
 
 
