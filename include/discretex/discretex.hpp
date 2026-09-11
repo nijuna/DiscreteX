@@ -27,6 +27,7 @@
 #include "algorithms/bipartite_matching.hpp"
 #include "algorithms/minimum_spanning_tree.hpp"
 #include "algorithms/network_flow.hpp"
+#include "algorithms/shortest_paths.hpp"
 
 // Combinatorics
 #include "combinatorics/counting.hpp"

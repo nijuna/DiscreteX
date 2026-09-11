@@ -1300,6 +1300,167 @@ void test_network_flow_and_max_flow_min_cut() {
     std::cout << "  -> Passed (Edmonds-Karp == Dinic, Max-Flow Min-Cut duality, Bipartite Matching reduction)\n";
 }
 
+void test_shortest_paths_suite() {
+    std::cout << "[Test] Graph Theory: Shortest Paths (DAG, Dijkstra, Bellman-Ford, Floyd-Warshall)...\n";
+    using namespace discretex;
+    using namespace discretex::algorithms;
+
+    // 1. Test DAG Shortest Paths (supports negative edge weights)
+    weighted_directed_graph<int> dag(5);
+    dag.add_edge(0, 1, 3);
+    dag.add_edge(0, 2, 2);
+    dag.add_edge(1, 3, 4);
+    dag.add_edge(1, 4, 1);
+    dag.add_edge(2, 1, -1); // negative edge
+    dag.add_edge(2, 3, 5);
+    dag.add_edge(3, 4, 2);
+
+    auto dag_res = dag_shortest_paths<int>(dag, 0);
+    assert(dag_res.distance[0] == 0);
+    assert(dag_res.distance[1] == 1); // 0 -> 2 -> 1
+    assert(dag_res.distance[2] == 2); // 0 -> 2
+    assert(dag_res.distance[3] == 5); // 0 -> 2 -> 1 -> 3
+    assert(dag_res.distance[4] == 2); // 0 -> 2 -> 1 -> 4
+
+    // Cross-check with Bellman-Ford on DAG
+    auto bf_dag = bellman_ford_shortest_paths<int>(dag, 0);
+    assert(!bf_dag.has_negative_cycle);
+    for (std::size_t i = 0; i < 5; ++i) {
+        assert(dag_res.distance[i] == bf_dag.distance[i]);
+    }
+
+    // Lazy path reconstruction and path integrity
+    auto path_to_4 = reconstruct_path(dag_res, 4);
+    assert(path_to_4.has_value());
+    std::vector<std::size_t> expected_p4 = {0, 2, 1, 4};
+    assert(*path_to_4 == expected_p4);
+    assert(verify_path_integrity(dag, *path_to_4, 2));
+
+    // DAG cycle rejection
+    weighted_directed_graph<int> cyclic(3);
+    cyclic.add_edge(0, 1, 1);
+    cyclic.add_edge(1, 2, 1);
+    cyclic.add_edge(2, 0, 1);
+    bool threw_cycle = false;
+    try {
+        dag_shortest_paths<int>(cyclic, 0);
+    } catch (const std::invalid_argument&) {
+        threw_cycle = true;
+    }
+    assert(threw_cycle);
+
+    // 2. Test Dijkstra Algorithm
+    weighted_directed_graph<int> g_dijkstra(6);
+    g_dijkstra.add_edge(0, 1, 4);
+    g_dijkstra.add_edge(0, 2, 2);
+    g_dijkstra.add_edge(1, 2, 1);
+    g_dijkstra.add_edge(1, 3, 5);
+    g_dijkstra.add_edge(2, 3, 8);
+    g_dijkstra.add_edge(2, 4, 10);
+    g_dijkstra.add_edge(3, 4, 2);
+    // vertex 5 is unreachable
+
+    auto dijk_res = dijkstra_shortest_paths<int>(g_dijkstra, 0);
+    assert(dijk_res.distance[0] == 0);
+    assert(dijk_res.distance[1] == 4);
+    assert(dijk_res.distance[2] == 2);
+    assert(dijk_res.distance[3] == 9);  // 0 -> 1 -> 3
+    assert(dijk_res.distance[4] == 11); // 0 -> 1 -> 3 -> 4
+    assert(!dijk_res.is_reachable(5));
+    assert(dijk_res.distance[5] == std::nullopt);
+
+    auto p_dijk = reconstruct_path(dijk_res, 4);
+    assert(p_dijk.has_value());
+    assert(verify_path_integrity(g_dijkstra, *p_dijk, 11));
+    assert(!reconstruct_path(dijk_res, 5).has_value());
+
+    // Cross-check Dijkstra vs Bellman-Ford on non-negative graph
+    auto bf_dijk = bellman_ford_shortest_paths<int>(g_dijkstra, 0);
+    assert(!bf_dijk.has_negative_cycle);
+    for (std::size_t i = 0; i < 6; ++i) {
+        assert(dijk_res.distance[i] == bf_dijk.distance[i]);
+    }
+
+    // 3. Test Bellman-Ford with Negative Weights and Cycle Detection
+    weighted_directed_graph<int> g_neg(4);
+    g_neg.add_edge(0, 1, 4);
+    g_neg.add_edge(0, 2, 5);
+    g_neg.add_edge(1, 2, -2);
+    g_neg.add_edge(2, 3, 3);
+
+    auto bf_res = bellman_ford_shortest_paths<int>(g_neg, 0);
+    assert(!bf_res.has_negative_cycle);
+    assert(bf_res.distance[0] == 0);
+    assert(bf_res.distance[1] == 4);
+    assert(bf_res.distance[2] == 2);
+    assert(bf_res.distance[3] == 5);
+    auto p_bf = reconstruct_path(bf_res, 3);
+    assert(p_bf.has_value());
+    assert(verify_path_integrity(g_neg, *p_bf, 5));
+
+    // Negative cycle detection in Bellman-Ford
+    weighted_directed_graph<int> g_cycle(4);
+    g_cycle.add_edge(0, 1, 1);
+    g_cycle.add_edge(1, 2, 2);
+    g_cycle.add_edge(2, 3, 3);
+    g_cycle.add_edge(3, 1, -10); // cycle 1 -> 2 -> 3 -> 1 has sum 2 + 3 - 10 = -5 < 0
+
+    auto bf_cycle = bellman_ford_shortest_paths<int>(g_cycle, 0);
+    assert(bf_cycle.has_negative_cycle == true);
+    assert(!reconstruct_path(bf_cycle, 3).has_value());
+
+    // 4. Test Floyd-Warshall All-Pairs Algorithm
+    weighted_directed_graph<int> g_fw(4);
+    g_fw.add_edge(0, 1, 1);
+    g_fw.add_edge(1, 2, 2);
+    g_fw.add_edge(2, 3, 3);
+    g_fw.add_edge(3, 0, 4);
+
+    auto fw_res = floyd_warshall_all_pairs<int>(g_fw);
+    assert(!fw_res.has_negative_cycle);
+
+    // Cross-check: Each row in Floyd-Warshall matches Dijkstra single source
+    for (std::size_t s = 0; s < 4; ++s) {
+        auto d_row = dijkstra_shortest_paths<int>(g_fw, s);
+        for (std::size_t t = 0; t < 4; ++t) {
+            assert(fw_res.distance[s][t] == d_row.distance[t]);
+        }
+    }
+
+    auto fw_p03 = reconstruct_path(fw_res, 0, 3);
+    assert(fw_p03.has_value());
+    std::vector<std::size_t> expected_fw = {0, 1, 2, 3};
+    assert(*fw_p03 == expected_fw);
+    assert(verify_path_integrity(g_fw, *fw_p03, 6));
+
+    // Floyd-Warshall negative cycle detection
+    weighted_directed_graph<int> g_fw_neg(3);
+    g_fw_neg.add_edge(0, 1, 1);
+    g_fw_neg.add_edge(1, 2, 2);
+    g_fw_neg.add_edge(2, 0, -5); // cycle sum -2 < 0
+    auto fw_neg_res = floyd_warshall_all_pairs<int>(g_fw_neg);
+    assert(fw_neg_res.has_negative_cycle == true);
+
+    // 5. Undirected Graph Compatibility & Distance Symmetry
+    weighted_undirected_graph<int> g_undir(4);
+    g_undir.add_edge(0, 1, 2);
+    g_undir.add_edge(1, 2, 3);
+    g_undir.add_edge(2, 3, 4);
+    g_undir.add_edge(0, 3, 15);
+
+    auto dijk_undir = dijkstra_shortest_paths<int>(g_undir, 0);
+    assert(dijk_undir.distance[3] == 9); // 0-1-2-3 (2+3+4) instead of direct 15
+    auto fw_undir = floyd_warshall_all_pairs<int>(g_undir);
+    // Symmetry in undirected distance matrix: dist[u][v] == dist[v][u]
+    for (std::size_t u = 0; u < 4; ++u) {
+        for (std::size_t v = 0; v < 4; ++v) {
+            assert(fw_undir.distance[u][v] == fw_undir.distance[v][u]);
+        }
+    }
+
+    std::cout << "  -> Passed (DAG, Dijkstra, Bellman-Ford, Floyd-Warshall, cross-validations, cycle detection)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -1324,6 +1485,7 @@ int main() {
     test_bipartite_matching_and_koenig();
     test_dsu_and_minimum_spanning_tree();
     test_network_flow_and_max_flow_min_cut();
+    test_shortest_paths_suite();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;

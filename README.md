@@ -55,8 +55,14 @@ DiscreteX separates semantic relations from execution graphs via concepts:
   - Reduction bridge: Exact reduction of bipartite matching to unit flow networks, recovering matching size $|M|$ and König's minimum vertex cover $|C|$.
 - **Weighted Graphs (`graph/weighted_graph.hpp`)**:
   - Structured `weighted_edge<Weight>` and `weighted_neighbor<Weight>` supporting arbitrary ordered weight types.
-  - `weighted_undirected_graph<Weight, Dom>` with dual flat-edge list and adjacency-list models.
+  - `weighted_directed_graph<Weight, Dom>` and `weighted_undirected_graph<Weight, Dom>` with dual flat-edge list and adjacency-list models.
   - $O(1)$ degrees, optional edge queries (`edge_weight`), and vertex/edge counts.
+- **Shortest Paths (`algorithms/shortest_paths.hpp`)**:
+  - `dag_shortest_paths`: Topological order relaxation running in $O(|V| + |E|)$, supporting negative edge weights on DAGs.
+  - `dijkstra_shortest_paths`: Min-priority queue single-source shortest paths in $O((|V| + |E|) \log |V|)$ for non-negative weights.
+  - `bellman_ford_shortest_paths`: Single-source shortest paths in $O(|V| \cdot |E|)$ supporting arbitrary signed weights and detecting reachable negative cycles.
+  - `floyd_warshall_all_pairs`: Dynamic programming all-pairs shortest paths in $O(|V|^3)$ with next-hop matrices and negative cycle detection.
+  - Results and Reconstruction: `shortest_path_result`, `bellman_ford_result`, and `all_pairs_shortest_path_result` using `std::optional<Weight>` distances, with lazy path reconstruction (`reconstruct_path`) and integrity verification (`verify_path_integrity`).
 - **Minimum Spanning Trees & Forests (`algorithms/minimum_spanning_tree.hpp`)**:
   - `minimum_spanning_tree_kruskal`: Kruskal's algorithm in $O(E \log E + E \alpha(V))$ using DSU.
   - `minimum_spanning_tree_prim`: Prim's algorithm in $O(E \log V)$ using min-priority queues.
