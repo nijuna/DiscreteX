@@ -415,6 +415,191 @@ void test_valuation_space_bridge() {
     std::cout << "  -> Passed (Valuation subsets isomorphic to Boolean Lattice operations)\n";
 }
 
+void test_number_theory() {
+    std::cout << "[Test] Milestone 5: Number Theory (Euclidean, Modular, Primes, CRT)...\n";
+    using namespace discretex::number_theory;
+
+    // 1. Extended GCD
+    auto eg = extended_gcd<int64_t>(240, 46);
+    assert(eg.gcd == 2);
+    assert(240 * eg.x + 46 * eg.y == eg.gcd);
+
+    // Negative input handling
+    auto eg_neg = extended_gcd<int64_t>(-35, 15);
+    assert(eg_neg.gcd == 5);
+    assert(-35 * eg_neg.x + 15 * eg_neg.y == 5);
+
+    // 2. Linear Diophantine Equation: 12x + 18y = 30
+    auto dio = solve_diophantine<int64_t>(12, 18, 30);
+    assert(dio.has_solution);
+    assert(dio.gcd == 6);
+    assert(12 * dio.x0 + 18 * dio.y0 == 30);
+
+    auto dio_nosol = solve_diophantine<int64_t>(12, 18, 31);
+    assert(!dio_nosol.has_solution);
+
+    // 3. Modular Arithmetic & Inverse
+    assert(add_mod(10, 20, 25) == 5);
+    assert(sub_mod(5, 10, 25) == 20);
+    assert(mul_mod(10, 20, 25) == 0);
+    assert(mul_mod(7, 8, 25) == 6);
+
+    // Fermat's Little Theorem: 2^(p-1) = 1 (mod p)
+    uint64_t p_mod = 1000000007ULL;
+    assert(power_mod(2, p_mod - 1, p_mod) == 1);
+
+    // Modular Inverse
+    auto inv3 = mod_inverse(3, 11);
+    assert(inv3.has_value() && *inv3 == 4); // 3 * 4 = 12 = 1 (mod 11)
+    auto inv_none = mod_inverse(6, 9);
+    assert(!inv_none.has_value());
+
+    // Dynamic mod int
+    dynamic_mod_int a(7, 13);
+    dynamic_mod_int b(8, 13);
+    assert((a + b).value() == 2); // 15 mod 13
+    assert((a * b).value() == 4); // 56 mod 13
+    assert((a / b * b).value() == 7);
+    assert(a.pow(12).value() == 1); // FLT
+
+    // 4. Primality (Deterministic Miller-Rabin)
+    assert(!is_prime(0));
+    assert(!is_prime(1));
+    assert(is_prime(2));
+    assert(is_prime(3));
+    assert(is_prime(5));
+    assert(is_prime(104729)); // 10,000th prime
+    assert(is_prime(1000000007ULL));
+
+    assert(!is_prime(4));
+    assert(!is_prime(9));
+    assert(!is_prime(561)); // Carmichael number 3 * 11 * 17
+    assert(!is_prime(1105)); // Carmichael number 5 * 13 * 17
+
+    // Sieve of Eratosthenes
+    auto primes_50 = sieve_of_eratosthenes(50);
+    assert(primes_50.size() == 15);
+    assert(primes_50.front() == 2);
+    assert(primes_50.back() == 47);
+
+    // Prime Factorization
+    auto factors_360 = prime_factors(360); // 2^3 * 3^2 * 5^1
+    assert(factors_360.size() == 3);
+    assert((factors_360[0] == std::pair<uint64_t, std::size_t>{2, 3}));
+    assert((factors_360[1] == std::pair<uint64_t, std::size_t>{3, 2}));
+    assert((factors_360[2] == std::pair<uint64_t, std::size_t>{5, 1}));
+
+    // Divisors
+    auto divs_12 = divisors(12);
+    assert((divs_12 == std::vector<uint64_t>{1, 2, 3, 4, 6, 12}));
+
+    // Euler Totient & Carmichael
+    assert(euler_totient(1) == 1);
+    assert(euler_totient(9) == 6);
+    assert(euler_totient(12) == 4);
+    assert(euler_totient(13) == 12);
+    assert(carmichael(8) == 2);
+    assert(carmichael(12) == 2);
+
+    // 5. Linear Congruence: 6x = 9 (mod 15) -> solutions {4, 9, 14}
+    auto cong_sols = solve_linear_congruence(6, 9, 15);
+    assert((cong_sols == std::vector<uint64_t>{4, 9, 14}));
+
+    // 6. Chinese Remainder Theorem
+    // Sunzi's problem: x = 2 (mod 3), x = 3 (mod 5), x = 2 (mod 7) -> x = 23 (mod 105)
+    std::vector<congruence> sunzi = {
+        {2, 3}, {3, 5}, {2, 7}
+    };
+    auto crt_sunzi = chinese_remainder_theorem(sunzi);
+    assert(crt_sunzi.has_value());
+    assert(crt_sunzi->first == 23);
+    assert(crt_sunzi->second == 105);
+
+    // Non-coprime consistent: x = 2 (mod 4), x = 4 (mod 6) -> x = 10 (mod 12)
+    std::vector<congruence> non_coprime_ok = {
+        {2, 4}, {4, 6}
+    };
+    auto crt_nc = chinese_remainder_theorem(non_coprime_ok);
+    assert(crt_nc.has_value());
+    assert(crt_nc->first == 10);
+    assert(crt_nc->second == 12);
+
+    // Non-coprime inconsistent: x = 1 (mod 4), x = 2 (mod 6) -> no solution
+    std::vector<congruence> non_coprime_bad = {
+        {1, 4}, {2, 6}
+    };
+    auto crt_bad = chinese_remainder_theorem(non_coprime_bad);
+    assert(!crt_bad.has_value());
+
+    std::cout << "  -> Passed (Extended GCD, Diophantine, Modular Rings, Miller-Rabin, Sieve, CRT)\n";
+}
+
+void test_divisibility_lattice_bridge() {
+    std::cout << "[Test] Milestone 5 Bridge: Divisibility Lattice D_30 Isomorphic to Boolean Lattice B_3...\n";
+    using namespace discretex::number_theory;
+
+    // Divisors of 30 = 2 * 3 * 5: {1, 2, 3, 5, 6, 10, 15, 30}
+    auto divs = divisors(30);
+    assert(divs.size() == 8);
+
+    mapped_domain<uint64_t> div_dom(divs);
+    dense_relation rel(div_dom);
+
+    // Order: u <= v <=> u divides v
+    for (uint64_t u : divs) {
+        for (uint64_t v : divs) {
+            if (v % u == 0) {
+                rel.add_pair(div_dom.to_index(u), div_dom.to_index(v));
+            }
+        }
+    }
+
+    poset d30_lattice(std::move(rel));
+
+    // 1. Verify D_30 is a lattice
+    assert(d30_lattice.is_lattice());
+
+    // 2. Verify meet is gcd and join is lcm
+    for (uint64_t u : divs) {
+        for (uint64_t v : divs) {
+            std::size_t u_idx = div_dom.to_index(u);
+            std::size_t v_idx = div_dom.to_index(v);
+
+            auto m_idx = d30_lattice.meet(u_idx, v_idx);
+            auto j_idx = d30_lattice.join(u_idx, v_idx);
+
+            assert(m_idx.has_value());
+            assert(j_idx.has_value());
+
+            assert(div_dom.from_index(*m_idx) == std::gcd(u, v));
+            assert(div_dom.from_index(*j_idx) == std::lcm(u, v));
+        }
+    }
+
+    // 3. Verify Hasse diagram has 12 edges (isomorphic to 3-cube Q3)
+    auto hasse = d30_lattice.hasse_diagram();
+    assert(hasse.edge_count() == 12);
+
+    // Each covering relation u -< v must correspond to multiplying by a prime factor
+    for (std::size_t u_idx = 0; u_idx < div_dom.size(); ++u_idx) {
+        uint64_t u_val = div_dom.from_index(u_idx);
+        for (std::size_t v_idx : hasse.out_neighbors(u_idx)) {
+            uint64_t v_val = div_dom.from_index(v_idx);
+            assert(v_val % u_val == 0);
+            uint64_t quotient = v_val / u_val;
+            // Quotient must be prime (2, 3, or 5)
+            assert(quotient == 2 || quotient == 3 || quotient == 5);
+        }
+    }
+
+    // 4. Linear extension: bottom is 1, top is 30
+    auto order = d30_lattice.linear_extension();
+    assert(div_dom.from_index(order.front()) == 1);
+    assert(div_dom.from_index(order.back()) == 30);
+
+    std::cout << "  -> Passed (Divisibility Lattice D_30 satisfies lattice axioms & matches Q_3 Hasse diagram)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -429,8 +614,11 @@ int main() {
     test_poset_and_boolean_lattice();
     test_propositional_logic();
     test_valuation_space_bridge();
+    test_number_theory();
+    test_divisibility_lattice_bridge();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;
 }
+
 

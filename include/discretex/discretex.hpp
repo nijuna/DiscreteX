@@ -30,3 +30,9 @@
 #include "logic/formula.hpp"
 #include "logic/truth_table.hpp"
 #include "logic/normal_forms.hpp"
+
+// Number Theory
+#include "number_theory/euclidean.hpp"
+#include "number_theory/modular.hpp"
+#include "number_theory/primes.hpp"
+#include "number_theory/congruence.hpp"
