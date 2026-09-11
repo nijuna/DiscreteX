@@ -9,6 +9,7 @@
 
 // Relations & Graphs
 #include "relation/dense_relation.hpp"
+#include "relation/equivalence.hpp"
 #include "graph/sparse_graph.hpp"
 
 // Views
@@ -19,8 +20,12 @@
 #include "algorithms/topological_sort.hpp"
 
 // Combinatorics
+#include "combinatorics/counting.hpp"
 #include "combinatorics/k_subsets.hpp"
 #include "combinatorics/power_set.hpp"
+#include "combinatorics/permutations.hpp"
+#include "combinatorics/integer_partitions.hpp"
+#include "combinatorics/set_partitions.hpp"
 #include "combinatorics/projection.hpp"
 
 // Order Theory

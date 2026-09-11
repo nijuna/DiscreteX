@@ -4,7 +4,7 @@ DiscreteX is a modern, unified C++20 library for discrete mathematics and discre
 
 In the standard C++ ecosystem, discrete mathematics is fragmented: graph libraries, combinatorics utilities, logic engines, and number-theoretic algorithms often use conflicting abstractions, bespoke container types, and inconsistent indexing models. 
 
-The goal of DiscreteX is to unify these domains into a mathematically coherent, high-performance C++20 library. In DiscreteX, structures are not isolated: partially ordered sets naturally produce directed acyclic graphs; propositional valuation spaces are isomorphic to Boolean lattices; and divisibility relations on integers form distributive lattices that share the exact same order-theoretic and graph algorithms.
+The goal of DiscreteX is to unify these domains into a mathematically coherent, high-performance C++20 library. In DiscreteX, structures are not isolated: partially ordered sets naturally produce directed acyclic graphs; propositional valuation spaces are isomorphic to Boolean lattices; integer partitions and set partitions connect directly with equivalence relations; and divisibility relations on integers form distributive lattices that share the exact same order-theoretic and graph algorithms.
 
 ---
 
@@ -29,19 +29,32 @@ DiscreteX separates semantic relations from execution graphs via concepts:
 
 ---
 
-## Implemented Modules
+## Implemented Subsystems
 
-### 1. Core & Relations (`discretex/core`, `discretex/relation`, `discretex/storage`)
-- Mathematical relations over finite domains.
-- 64-bit packed bit-matrix representation with tail-padding bit masking.
-- Bit-scan fiber traversal.
+### 1. Core Relations & Equivalence Structures (`discretex/core`, `discretex/relation`)
+- Mathematical binary relations over finite domains with packed 64-bit word storage and bit-scan fiber traversal.
+- Equivalence relation axiom verification (`is_equivalence_relation`) requiring only `concepts::Relation`.
+- Canonical quotient set extraction (`equivalence_classes_rgs`, `equivalence_classes`, `quotient_size`).
+- Two-way bridge between set partitions and dense equivalence relations (`relation_from_partition`).
 - In-place Warshall transitive closure.
 - Generic Breadth-First Search (`algorithms::bfs`) operating uniformly across dense relations, sparse graphs, and transpose views.
 
-### 2. Combinatorial Ranges (`discretex/combinatorics`)
-- **$k$-Subsets (`k_subsets_view`)**: Generates all $\\binom{n}{k}$ combinations in lexicographical order, yielding spans in amortized $O(1)$ time per step.
-- **Power Set (`power_set_view`)**: Safe generation for $n \\le 63$ supporting standard binary counting and reflected Binary Gray code orderings.
-- **Domain Projection (`views::project_subsets`)**: Lazy projection of index subsets onto arbitrary domain elements via `std::views::transform`.
+### 2. Enumerative Combinatorics & Generators (`discretex/combinatorics`)
+- **Counting & Special Numbers (`counting.hpp`)**:
+  - Exact 64-bit arithmetic with overflow detection (`factorial`, `falling_factorial`, `combinations_count`).
+  - Stirling numbers of the second kind ($S(n, k)$) and unsigned Stirling numbers of the first kind ($|c(n, k)|$).
+  - Bell numbers ($B_n$), Catalan numbers ($C_n$), and unrestricted partition numbers ($p(n)$ via Euler's pentagonal theorem).
+- **Subsets & Power Sets**:
+  - `k_subsets_view`: all $\\binom{n}{k}$ combinations in lexicographical order.
+  - `power_set_view`: safe generation for $n \\le 63$ in binary counting or reflected Gray code.
+- **Permutations & Integer Partitions**:
+  - `permutations_view`: all $n!$ permutations in lexicographical order yielding `std::span<const std::size_t>`.
+  - `integer_partitions_view`: all non-increasing partitions $\\lambda \\vdash n$ summing to $n$.
+- **Set Partitions via Restricted Growth Strings (RGS)**:
+  - `set_partitions_view`: all $B_n$ set partitions represented canonically as RGS.
+  - `k_set_partitions_view`: exact direct generation of $S(n, k)$ partitions into $k$ blocks.
+- **Domain Projection**:
+  - `views::project_subsets` and `views::project_permutations` adapting index generators to user domains.
 
 ### 3. Order Theory & Lattices (`discretex/order`)
 - Closure-backed partially ordered sets (`poset`).

@@ -6,6 +6,9 @@
 
 namespace discretex::concepts {
 
+using discretex::FiniteDomain;
+using discretex::IndexableDomain;
+
 // Basic Relation: Belongs to a domain and supports membership test (u, v)
 template <typename R>
 concept Relation = requires(const R& r, std::size_t u, std::size_t v) {

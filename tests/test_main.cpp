@@ -600,6 +600,217 @@ void test_divisibility_lattice_bridge() {
     std::cout << "  -> Passed (Divisibility Lattice D_30 satisfies lattice axioms & matches Q_3 Hasse diagram)\n";
 }
 
+void test_counting_functions() {
+    std::cout << "[Test] Enumerative Combinatorics: Counting Sequences & Exact Numbers...\n";
+    using namespace discretex::combinatorics;
+
+    // 1. Factorial & Falling Factorial
+    assert(factorial(0) == 1);
+    assert(factorial(1) == 1);
+    assert(factorial(5) == 120);
+    assert(factorial(10) == 3628800);
+    assert(factorial(20) == 2432902008176640000ULL);
+
+    bool threw_fact = false;
+    try {
+        factorial(21);
+    } catch (const std::overflow_error&) {
+        threw_fact = true;
+    }
+    assert(threw_fact);
+
+    assert(falling_factorial(5, 2) == 20); // 5 * 4
+    assert(falling_factorial(5, 0) == 1);
+    assert(falling_factorial(5, 5) == 120);
+    assert(falling_factorial(5, 6) == 0);
+
+    // 2. Combinations (Binomial Coefficients)
+    assert(combinations_count(5, 2) == 10);
+    assert(combinations_count(10, 4) == 210);
+    assert(combinations_count(50, 5) == 2118760);
+    assert(combinations_count(5, 6) == 0);
+
+    // 3. Stirling Numbers of the Second Kind S(n, k)
+    assert(stirling_second(0, 0) == 1);
+    assert(stirling_second(4, 0) == 0);
+    assert(stirling_second(4, 1) == 1);
+    assert(stirling_second(4, 2) == 7);
+    assert(stirling_second(4, 3) == 6);
+    assert(stirling_second(4, 4) == 1);
+    assert(stirling_second(5, 3) == 25);
+
+    // 4. Unsigned Stirling Numbers of the First Kind |c(n, k)|
+    assert(stirling_first_unsigned(4, 2) == 11);
+    assert(stirling_first_unsigned(5, 3) == 35);
+    assert(stirling_first(4, 2) == 11);
+
+    // 5. Bell Numbers B(n)
+    assert(bell_number(0) == 1);
+    assert(bell_number(1) == 1);
+    assert(bell_number(2) == 2);
+    assert(bell_number(3) == 5);
+    assert(bell_number(4) == 15);
+    assert(bell_number(5) == 52);
+    assert(bell_number(6) == 203);
+
+    // Verify Bell number is sum of Stirling numbers of the second kind: B(4) = sum S(4, k)
+    uint64_t b4_sum = stirling_second(4, 0) + stirling_second(4, 1) + stirling_second(4, 2) +
+                      stirling_second(4, 3) + stirling_second(4, 4);
+    assert(b4_sum == bell_number(4));
+
+    // 6. Catalan Numbers C_n
+    assert(catalan_number(0) == 1);
+    assert(catalan_number(1) == 1);
+    assert(catalan_number(2) == 2);
+    assert(catalan_number(3) == 5);
+    assert(catalan_number(4) == 14);
+    assert(catalan_number(5) == 42);
+
+    // 7. Partition Numbers p(n)
+    assert(partition_number(0) == 1);
+    assert(partition_number(1) == 1);
+    assert(partition_number(2) == 2);
+    assert(partition_number(3) == 3);
+    assert(partition_number(4) == 5);
+    assert(partition_number(5) == 7);
+    assert(partition_number(10) == 42);
+
+    std::cout << "  -> Passed (Factorial, Falling Factorial, Combinations, Stirling, Bell, Catalan, Partition)\n";
+}
+
+void test_permutations_and_integer_partitions() {
+    std::cout << "[Test] Enumerative Combinatorics: Permutations & Integer Partitions Views...\n";
+    using namespace discretex::combinatorics;
+
+    // 1. Permutations View of 3 elements: 3! = 6
+    permutations_view p3(3);
+    assert(p3.size() == 6);
+
+    std::vector<std::vector<std::size_t>> generated_perms;
+    for (auto p : p3) {
+        generated_perms.emplace_back(p.begin(), p.end());
+    }
+
+    std::vector<std::vector<std::size_t>> expected_perms = {
+        {0, 1, 2}, {0, 2, 1}, {1, 0, 2}, {1, 2, 0}, {2, 0, 1}, {2, 1, 0}
+    };
+    assert(generated_perms == expected_perms);
+
+    // 2. Permutation projection onto mapped domain
+    mapped_domain<std::string> letters{"X", "Y", "Z"};
+    std::vector<std::vector<std::string>> proj_perms;
+    for (const auto& perm : views::project_permutations(letters, p3)) {
+        proj_perms.push_back(perm);
+    }
+    assert(proj_perms.size() == 6);
+    assert((proj_perms[0] == std::vector<std::string>{"X", "Y", "Z"}));
+    assert((proj_perms[5] == std::vector<std::string>{"Z", "Y", "X"}));
+
+    // 3. Integer Partitions View of 4: p(4) = 5
+    integer_partitions_view ip4(4);
+    assert(ip4.size() == 5);
+
+    std::vector<std::vector<std::size_t>> generated_parts;
+    for (auto part : ip4) {
+        generated_parts.emplace_back(part.begin(), part.end());
+        // Verify partition invariant: sum of elements == 4
+        std::size_t s = 0;
+        for (std::size_t x : part) s += x;
+        assert(s == 4);
+    }
+
+    std::vector<std::vector<std::size_t>> expected_parts = {
+        {4}, {3, 1}, {2, 2}, {2, 1, 1}, {1, 1, 1, 1}
+    };
+    assert(generated_parts == expected_parts);
+
+    std::cout << "  -> Passed (Permutations Lexicographical Order & Integer Partitions Invariant)\n";
+}
+
+void test_set_partitions_and_equivalence_bridge() {
+    std::cout << "[Test] Bridge: Set Partitions RGS & Equivalence Relations Isomorphism...\n";
+    using namespace discretex::combinatorics;
+
+    std::size_t n = 4;
+    index_domain dom(n);
+
+    // 1. Enumerate all set partitions of {0, 1, 2, 3} via set_partitions_view
+    set_partitions_view sp4(n);
+    std::size_t total_partitions = 0;
+    std::vector<std::size_t> block_counts(n + 1, 0);
+
+    for (auto rgs : sp4) {
+        ++total_partitions;
+        std::size_t k = block_count(rgs);
+        ++block_counts[k];
+
+        // Bridge Test A: Construct relation from RGS partition
+        auto rel = relation_from_partition(dom, rgs);
+
+        // Bridge Test B: Verify equivalence relation axioms
+        assert(is_equivalence_relation(rel));
+
+        // Bridge Test C: Round-trip: recover canonical RGS from relation
+        auto recovered_rgs = equivalence_classes_rgs(rel);
+        std::vector<std::size_t> rgs_vec(rgs.begin(), rgs.end());
+        assert(recovered_rgs == rgs_vec);
+
+        // Bridge Test D: Explicit blocks round-trip
+        auto blocks = equivalence_classes(rel);
+        auto rgs_from_blocks = blocks_to_rgs(blocks, n);
+        assert(rgs_from_blocks == rgs_vec);
+
+        // Bridge Test E: Construct relation from blocks and verify equivalence with original
+        auto rel_from_blocks = relation_from_partition(dom, blocks);
+        for (std::size_t u = 0; u < n; ++u) {
+            for (std::size_t v = 0; v < n; ++v) {
+                assert(rel.contains(u, v) == rel_from_blocks.contains(u, v));
+            }
+        }
+    }
+
+    // 2. Verify total generated equals Bell number B(4) = 15
+    assert(total_partitions == bell_number(n));
+
+    // 3. Verify counts per block size match Stirling numbers of the second kind S(4, k)
+    assert(block_counts[1] == stirling_second(n, 1)); // 1
+    assert(block_counts[2] == stirling_second(n, 2)); // 7
+    assert(block_counts[3] == stirling_second(n, 3)); // 6
+    assert(block_counts[4] == stirling_second(n, 4)); // 1
+
+    // 4. Test direct k_set_partitions_view(4, 2): must generate exactly S(4, 2) = 7 partitions
+    k_set_partitions_view k_sp4_2(4, 2);
+    std::size_t k_count = 0;
+    for (auto rgs : k_sp4_2) {
+        ++k_count;
+        assert(block_count(rgs) == 2);
+        auto rel = relation_from_partition(dom, rgs);
+        assert(is_equivalence_relation(rel));
+        assert(quotient_size(rel) == 2);
+    }
+    assert(k_count == stirling_second(4, 2));
+
+    // 5. Test negative cases for is_equivalence_relation
+    dense_relation not_refl(dom); // empty relation: not reflexive
+    assert(!is_equivalence_relation(not_refl));
+
+    dense_relation not_sym(dom);
+    for (std::size_t i = 0; i < n; ++i) not_sym.add_pair(i, i);
+    not_sym.add_pair(0, 1); // (0, 1) without (1, 0)
+    assert(!is_equivalence_relation(not_sym));
+
+    dense_relation not_trans(dom);
+    for (std::size_t i = 0; i < n; ++i) not_trans.add_pair(i, i);
+    not_trans.add_pair(0, 1);
+    not_trans.add_pair(1, 0);
+    not_trans.add_pair(1, 2);
+    not_trans.add_pair(2, 1);
+    // Missing (0, 2) and (2, 0)
+    assert(!is_equivalence_relation(not_trans));
+
+    std::cout << "  -> Passed (B(4)=15, S(4,k) distributions, RGS round-trip, quotient sets)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -616,9 +827,13 @@ int main() {
     test_valuation_space_bridge();
     test_number_theory();
     test_divisibility_lattice_bridge();
+    test_counting_functions();
+    test_permutations_and_integer_partitions();
+    test_set_partitions_and_equivalence_bridge();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;
 }
+
 
 
