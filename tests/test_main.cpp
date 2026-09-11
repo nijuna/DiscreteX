@@ -171,7 +171,7 @@ void test_combinatorics() {
 }
 
 void test_poset_and_boolean_lattice() {
-    std::cout << "[Test] Milestone 3: Posets, Hasse Diagrams & Boolean Lattice B3...\n";
+    std::cout << "[Test] Order Theory: Posets, Hasse Diagrams & Boolean Lattice B3...\n";
 
     // 1. Basic Poset from DAG
     // DAG: 0 -> 1, 1 -> 2, 0 -> 2
@@ -261,7 +261,7 @@ void test_poset_and_boolean_lattice() {
 }
 
 void test_propositional_logic() {
-    std::cout << "[Test] Milestone 4: Propositional Logic AST, Truth Tables & Normal Forms...\n";
+    std::cout << "[Test] Propositional Logic: AST, Truth Tables & Normal Forms...\n";
     using namespace discretex::logic;
 
     auto p = var(0);
@@ -344,7 +344,7 @@ void test_propositional_logic() {
 }
 
 void test_valuation_space_bridge() {
-    std::cout << "[Test] Milestone 4 Bridge: Valuation Algebra & Boolean Lattice Isomorphism...\n";
+    std::cout << "[Test] Bridge: Valuation Algebra & Boolean Lattice Isomorphism...\n";
     using namespace discretex::logic;
 
     // 3 variables: p=x0, q=x1, r=x2 -> 8 valuations [0..7]
@@ -416,7 +416,7 @@ void test_valuation_space_bridge() {
 }
 
 void test_number_theory() {
-    std::cout << "[Test] Milestone 5: Number Theory (Euclidean, Modular, Primes, CRT)...\n";
+    std::cout << "[Test] Number Theory: Euclidean, Modular Rings, Primes & CRT...\n";
     using namespace discretex::number_theory;
 
     // 1. Extended GCD
@@ -535,7 +535,7 @@ void test_number_theory() {
 }
 
 void test_divisibility_lattice_bridge() {
-    std::cout << "[Test] Milestone 5 Bridge: Divisibility Lattice D_30 Isomorphic to Boolean Lattice B_3...\n";
+    std::cout << "[Test] Bridge: Divisibility Lattice D_30 Isomorphic to Boolean Lattice B_3...\n";
     using namespace discretex::number_theory;
 
     // Divisors of 30 = 2 * 3 * 5: {1, 2, 3, 5, 6, 10, 15, 30}
