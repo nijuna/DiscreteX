@@ -67,4 +67,5 @@
 #include "automata/dfa.hpp"
 #include "automata/nfa.hpp"
 #include "automata/algorithms.hpp"
+#include "automata/regex.hpp"
 

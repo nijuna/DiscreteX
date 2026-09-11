@@ -193,7 +193,16 @@ DiscreteX separates semantic relations from execution graphs via concepts:
     - Computes minimal quotient DFA in $O(|\Sigma| \cdot |Q| \log |Q|)$ time using inverse transition precomputation and partition splitting.
     - Produces canonical state numbering with start block indexed at 0 and remaining blocks ordered by minimum element.
     - **Equivalence Relation Bridge**: Minimization partition blocks are certified as a mathematical equivalence relation via `relation_from_partition`, directly connecting automata minimization to the quotient and partition algebra subsystem.
-  - Language Equivalence (`language_equivalent`): Product state space exploration verifying language identity between arbitrary DFAs.
+  - Language Equivalence (`language_equivalent`, `is_language_equivalent`): Product state space exploration verifying language identity between arbitrary DFAs.
+  - Language Decision Procedures:
+    - `is_empty_language`: Reachability verification of accepting states in $O(|Q| \cdot |\Sigma|)$ on DFAs and NFAs ($L = \emptyset$).
+    - `is_universal_language`: Full state acceptance verification on total DFAs ($L(D) = \Sigma^*$).
+    - `is_language_included`: Product state space exploration verifying $L(D_1) \subseteq L(D_2) \iff L(D_1) \cap \overline{L(D_2)} = \emptyset$.
+- **Regular Expressions & Compilation Pipeline (`automata/regex.hpp`)**:
+  - Pure AST node hierarchy (`regex`, `regex_node`, `regex_op`) supporting $\emptyset$, $\varepsilon$, literals, concatenation, alternation, and Kleene star.
+  - Fluent algebraic operator overloads: `operator+` for concatenation and `operator|` for alternation.
+  - Thompson Inductive Construction (`thompson_construction`, `to_nfa`): Inductive fragment composition with single start and single accept endpoints compiling any regex into an equivalent $\varepsilon$-NFA.
+  - Closed-Loop Pipeline (`to_dfa`, `to_min_dfa`): Complete compilation chain $\text{Regex} \xrightarrow{\text{Thompson}} \text{NFA} \xrightarrow{\text{Powerset}} \text{DFA} \xrightarrow{\text{Hopcroft}} \text{DFA}_{\min}$.
 
 ---
 

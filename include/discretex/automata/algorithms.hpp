@@ -632,4 +632,145 @@ inline bool language_equivalent(const dfa& d1, const dfa& d2) {
     return true;
 }
 
+/**
+ * @brief Synonym for language_equivalent.
+ */
+inline bool is_language_equivalent(const dfa& d1, const dfa& d2) {
+    return language_equivalent(d1, d2);
+}
+
+/**
+ * @brief Determine whether a DFA recognizes the empty language L(D) = \emptyset.
+ */
+inline bool is_empty_language(const dfa& d) {
+    if (d.state_count() == 0) return true;
+
+    std::vector<bool> visited(d.state_count(), false);
+    std::vector<std::size_t> queue;
+    visited[d.start_state()] = true;
+    queue.push_back(d.start_state());
+
+    std::size_t head = 0;
+    while (head < queue.size()) {
+        std::size_t u = queue[head++];
+        if (d.is_accepting(u)) {
+            return false;
+        }
+        for (std::size_t a = 0; a < d.alphabet_size(); ++a) {
+            std::size_t v = d.transition(u, a);
+            if (!visited[v]) {
+                visited[v] = true;
+                queue.push_back(v);
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Determine whether an NFA recognizes the empty language L(N) = \emptyset.
+ */
+inline bool is_empty_language(const nfa& m) {
+    if (m.state_count() == 0) return true;
+
+    std::vector<bool> visited(m.state_count(), false);
+    std::vector<std::size_t> queue;
+
+    auto start_closure = epsilon_closure(m, m.start_state());
+    for (std::size_t s : start_closure) {
+        if (m.is_accepting(s)) return false;
+        visited[s] = true;
+        queue.push_back(s);
+    }
+
+    std::size_t head = 0;
+    while (head < queue.size()) {
+        std::size_t u = queue[head++];
+        for (std::size_t a = 0; a < m.alphabet_size(); ++a) {
+            for (std::size_t v : m.transitions(u, a)) {
+                auto v_closure = epsilon_closure(m, v);
+                for (std::size_t w : v_closure) {
+                    if (m.is_accepting(w)) {
+                        return false;
+                    }
+                    if (!visited[w]) {
+                        visited[w] = true;
+                        queue.push_back(w);
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Determine whether a total DFA recognizes the universal language L(D) = \Sigma^*.
+ */
+inline bool is_universal_language(const dfa& d) {
+    if (d.state_count() == 0) return false;
+
+    std::vector<bool> visited(d.state_count(), false);
+    std::vector<std::size_t> queue;
+    visited[d.start_state()] = true;
+    queue.push_back(d.start_state());
+
+    std::size_t head = 0;
+    while (head < queue.size()) {
+        std::size_t u = queue[head++];
+        if (!d.is_accepting(u)) {
+            return false;
+        }
+        for (std::size_t a = 0; a < d.alphabet_size(); ++a) {
+            std::size_t v = d.transition(u, a);
+            if (!visited[v]) {
+                visited[v] = true;
+                queue.push_back(v);
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Determine language inclusion L(D_1) \subseteq L(D_2) via product state exploration.
+ */
+inline bool is_language_included(const dfa& d1, const dfa& d2) {
+    if (d1.alphabet_size() != d2.alphabet_size()) {
+        throw std::invalid_argument("DFA language inclusion requires identical alphabet sizes.");
+    }
+    std::size_t n1 = d1.state_count();
+    std::size_t n2 = d2.state_count();
+    std::size_t sigma = d1.alphabet_size();
+    if (n1 == 0) return true;
+    if (n2 == 0) return is_empty_language(d1);
+
+    std::vector<bool> visited(n1 * n2, false);
+    std::vector<std::pair<std::size_t, std::size_t>> queue;
+
+    std::size_t s1 = d1.start_state();
+    std::size_t s2 = d2.start_state();
+    visited[s1 * n2 + s2] = true;
+    queue.emplace_back(s1, s2);
+
+    std::size_t head = 0;
+    while (head < queue.size()) {
+        auto [p, q] = queue[head++];
+        if (d1.is_accepting(p) && !d2.is_accepting(q)) {
+            return false;
+        }
+        for (std::size_t a = 0; a < sigma; ++a) {
+            std::size_t np = d1.transition(p, a);
+            std::size_t nq = d2.transition(q, a);
+            std::size_t idx = np * n2 + nq;
+            if (!visited[idx]) {
+                visited[idx] = true;
+                queue.emplace_back(np, nq);
+            }
+        }
+    }
+    return true;
+}
+
 } // namespace discretex::automata
+

@@ -1896,6 +1896,125 @@ void test_automata_subsystem() {
     std::cout << "  -> Passed (NFA eps-closure, subset construction, complement, product intersection, Hopcroft quotient)\n";
 }
 
+void test_regex_and_decision_procedures() {
+    std::cout << "[Test] Automata: Regex AST, Thompson Construction & Decision Procedures...\n";
+    using namespace discretex;
+    using namespace discretex::automata;
+
+    auto generate_binary_words = [](std::size_t max_len) {
+        std::vector<std::vector<std::size_t>> words;
+        words.push_back({});
+        for (std::size_t len = 1; len <= max_len; ++len) {
+            std::size_t count = 1ULL << len;
+            for (std::size_t mask = 0; mask < count; ++mask) {
+                std::vector<std::size_t> w(len);
+                for (std::size_t i = 0; i < len; ++i) {
+                    w[i] = (mask >> (len - 1 - i)) & 1ULL;
+                }
+                words.push_back(std::move(w));
+            }
+        }
+        return words;
+    };
+    auto test_words = generate_binary_words(5);
+
+    // 1. Regex AST construction and operations
+    auto r0 = literal(0);
+    auto r1 = literal(1);
+    auto r_eps = epsilon();
+    auto r_empty = empty_lang();
+
+    // Expression: (0 | 1)* . 0 . 1
+    auto r_suffix01 = star(r0 | r1) + r0 + r1;
+    assert(r_suffix01.is_concat());
+    assert(to_string(r_suffix01).find("0") != std::string::npos);
+
+    // 2. Thompson Construction: Regex -> NFA
+    auto nfa_suffix01 = to_nfa(r_suffix01, 2);
+    assert(nfa_suffix01.alphabet_size() == 2);
+    assert(nfa_suffix01.state_count() > 0);
+
+    // Verify word acceptance on Thompson NFA
+    assert(!accepts(nfa_suffix01, std::vector<std::size_t>{}));
+    assert(!accepts(nfa_suffix01, std::vector<std::size_t>{0}));
+    assert(!accepts(nfa_suffix01, std::vector<std::size_t>{1}));
+    assert(accepts(nfa_suffix01, std::vector<std::size_t>{0, 1}));
+    assert(accepts(nfa_suffix01, std::vector<std::size_t>{1, 0, 1}));
+    assert(accepts(nfa_suffix01, std::vector<std::size_t>{0, 0, 1}));
+    assert(accepts(nfa_suffix01, std::vector<std::size_t>{1, 1, 0, 1}));
+    assert(!accepts(nfa_suffix01, std::vector<std::size_t>{1, 1, 1, 0}));
+
+    // 3. End-to-End Pipeline: Regex -> NFA -> DFA -> Minimized DFA
+    auto dfa_suffix01 = to_dfa(r_suffix01, 2);
+    auto min_suffix01 = to_min_dfa(r_suffix01, 2);
+
+    // Suffix 01 over {0, 1} requires exactly 3 states in minimal DFA
+    assert(min_suffix01.state_count() == 3);
+
+    for (const auto& w : test_words) {
+        bool nfa_acc = accepts(nfa_suffix01, w);
+        bool dfa_acc = dfa_suffix01.accepts(w);
+        bool min_acc = min_suffix01.accepts(w);
+        assert(nfa_acc == dfa_acc);
+        assert(dfa_acc == min_acc);
+    }
+
+    // 4. Decision Procedure: Emptiness L(D) = \emptyset
+    auto dfa_empty1 = to_dfa(r_empty, 2);
+    assert(is_empty_language(dfa_empty1));
+
+    auto dfa_empty2 = to_dfa(r_empty + r0, 2);
+    assert(is_empty_language(dfa_empty2));
+
+    auto dfa_non_empty = to_dfa(r0, 2);
+    assert(!is_empty_language(dfa_non_empty));
+
+    auto dfa_eps = to_dfa(r_eps, 2);
+    assert(!is_empty_language(dfa_eps)); // contains \varepsilon
+    assert(dfa_eps.accepts(std::vector<std::size_t>{}));
+
+    // 5. Decision Procedure: Universality L(D) = \Sigma^*
+    auto r_univ = star(r0 | r1);
+    auto dfa_univ = to_dfa(r_univ, 2);
+    assert(is_universal_language(dfa_univ));
+    assert(!is_universal_language(dfa_suffix01));
+    assert(!is_universal_language(to_dfa(star(r0), 2)));
+
+    // 6. Decision Procedure: Inclusion L(D1) \subseteq L(D2)
+    // 0* \subseteq (0 | 1)*
+    auto dfa_star0 = to_dfa(star(r0), 2);
+    assert(is_language_included(dfa_star0, dfa_univ));
+    assert(!is_language_included(dfa_univ, dfa_star0));
+
+    // 01 \subseteq (0 | 1)* 0 1
+    auto dfa_word01 = to_dfa(r0 + r1, 2);
+    assert(is_language_included(dfa_word01, min_suffix01));
+    assert(!is_language_included(min_suffix01, dfa_word01));
+
+    // 7. Decision Procedure: Language Equivalence
+    // Commutativity of alternation: a | b == b | a
+    auto dfa_ab = to_dfa(r0 | r1, 2);
+    auto dfa_ba = to_dfa(r1 | r0, 2);
+    assert(is_language_equivalent(dfa_ab, dfa_ba));
+
+    // Idempotence of star: (a*)* == a*
+    auto dfa_star_star = to_dfa(star(star(r0)), 2);
+    assert(is_language_equivalent(dfa_star_star, dfa_star0));
+
+    // Star identity: (0 | 1)* == (0* 1*)*
+    auto r_alt_star = star(r0 | r1);
+    auto r_star_star = star(star(r0) + star(r1));
+    auto dfa_alt_star = to_dfa(r_alt_star, 2);
+    auto dfa_star_star_alt = to_dfa(r_star_star, 2);
+    assert(is_language_equivalent(dfa_alt_star, dfa_star_star_alt));
+
+    // Non-equivalence check: 0* != 1*
+    auto dfa_star1 = to_dfa(star(r1), 2);
+    assert(!is_language_equivalent(dfa_star0, dfa_star1));
+
+    std::cout << "  -> Passed (Thompson Regex->NFA, to_min_dfa pipeline, emptiness, universality, inclusion, equivalence)\n";
+}
+
 int main() {
     std::cout << "========================================\n";
     std::cout << "  DiscreteX Core Test Suite (C++20)     \n";
@@ -1924,6 +2043,7 @@ int main() {
     test_algebra_subsystem();
     test_quotient_groups_and_isomorphism_theorem();
     test_automata_subsystem();
+    test_regex_and_decision_procedures();
 
     std::cout << "\nALL TESTS PASSED SUCCESSFULLY (100%)\n";
     return 0;
