@@ -1,15 +1,20 @@
 <div align="center">
-  <img src="docs/assets/discretex-banner.svg" alt="DiscreteX Banner" width="100%" />
+  <a href="#discretex">
+    <img src="docs/assets/discretex-logo.svg" alt="DiscreteX Logo" width="175" />
+  </a>
+  <br />
+  <br />
+  <img src="docs/assets/discretex-banner.svg" alt="DiscreteX Banner" width="95%" />
 </div>
 
 <p align="center">
   <a href="https://github.com/nijuna/DiscreteX/actions/workflows/ci.yml"><img src="https://github.com/nijuna/DiscreteX/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
-  <a href="https://github.com/nijuna/DiscreteX/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-v1.0.0-38BDF8.svg" alt="Release v1.0.0" /></a>
-  <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/standard-ISO%20C%2B%2B20-6366F1.svg" alt="ISO C++20" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-10B981.svg" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/dependencies-zero-success.svg" alt="Zero Dependencies" />
-  <img src="https://img.shields.io/badge/tests-25%2F25%20passed-blueviolet.svg" alt="25/25 Tests Passing" />
-  <img src="https://img.shields.io/badge/architecture-header--only-informational.svg" alt="Header Only" />
+  <a href="https://github.com/nijuna/DiscreteX/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-v1.0.0-F59E0B.svg" alt="Release v1.0.0" /></a>
+  <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/standard-ISO%20C%2B%2B20-D97706.svg" alt="ISO C++20" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-78350F.svg" alt="MIT License" /></a>
+  <img src="https://img.shields.io/badge/dependencies-zero-B45309.svg" alt="Zero Dependencies" />
+  <img src="https://img.shields.io/badge/tests-25%2F25%20passed-D4AF37.svg" alt="25/25 Tests Passing" />
+  <img src="https://img.shields.io/badge/architecture-header--only-A16207.svg" alt="Header Only" />
 </p>
 
 <p align="center">
