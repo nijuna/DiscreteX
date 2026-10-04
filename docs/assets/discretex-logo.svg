@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="grad-primary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+    <linearGradient id="grad-secondary" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+    <linearGradient id="edge-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#818CF8" stop-opacity="0.8"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background subtle disc -->
+  <circle cx="200" cy="200" r="185" fill="#0B0F19" stroke="#1E293B" stroke-width="2" />
+  <circle cx="200" cy="200" r="160" fill="none" stroke="#334155" stroke-width="1" stroke-dasharray="4,8" opacity="0.6" />
+
+  <!-- Translucent Hypercube Face Plates (Discrete Polytopes) -->
+  <polygon points="200,60 310,135 200,210 90,135" fill="url(#grad-primary)" opacity="0.12" />
+  <polygon points="90,135 200,210 200,340 90,265" fill="url(#grad-secondary)" opacity="0.08" />
+  <polygon points="310,135 200,210 200,340 310,265" fill="url(#grad-primary)" opacity="0.15" />
+
+  <!-- Secondary Lattice Fill for X Core -->
+  <polygon points="120,105 280,295 240,295 80,105" fill="url(#grad-primary)" opacity="0.06" />
+  <polygon points="280,105 120,295 160,295 320,105" fill="url(#grad-secondary)" opacity="0.06" />
+
+  <!-- Lattice Graph Edges (Background & Perspective) -->
+  <g stroke="#334155" stroke-width="2" opacity="0.7">
+    <!-- Cube vertical & structural struts -->
+    <line x1="200" y1="60" x2="200" y2="210" stroke-dasharray="3,3" />
+    <line x1="90" y1="135" x2="310" y2="135" stroke-dasharray="3,3" />
+    <line x1="90" y1="265" x2="310" y2="265" stroke-dasharray="3,3" />
+  </g>
+
+  <!-- The Dominant 'X' Structural Bridge Struts (Foreground Graph) -->
+  <g stroke="url(#grad-primary)" stroke-width="4.5" stroke-linecap="round" filter="url(#glow)">
+    <!-- Diagonal Arm 1: Top-Left to Bottom-Right -->
+    <line x1="90" y1="135" x2="200" y2="210" />
+    <line x1="200" y1="210" x2="310" y2="265" />
+    <!-- Diagonal Arm 2: Top-Right to Bottom-Left -->
+    <line x1="310" y1="135" x2="200" y2="210" />
+    <line x1="200" y1="210" x2="90" y2="265" />
+
+    <!-- External Cube Boundary Framing -->
+    <line x1="200" y1="60" x2="310" y2="135" stroke="url(#grad-primary)" stroke-width="3" />
+    <line x1="200" y1="60" x2="90" y2="135" stroke="url(#grad-secondary)" stroke-width="3" />
+    <line x1="90" y1="135" x2="90" y2="265" stroke="url(#grad-secondary)" stroke-width="3" />
+    <line x1="310" y1="135" x2="310" y2="265" stroke="url(#grad-primary)" stroke-width="3" />
+    <line x1="90" y1="265" x2="200" y2="340" stroke="url(#grad-secondary)" stroke-width="3" />
+    <line x1="310" y1="265" x2="200" y2="340" stroke="url(#grad-primary)" stroke-width="3" />
+    <line x1="200" y1="210" x2="200" y2="340" stroke="url(#grad-primary)" stroke-width="3.5" />
+  </g>
+
+  <!-- Cross Lattice Connections forming internal geometric X -->
+  <g stroke="#38BDF8" stroke-width="2" stroke-linecap="round" opacity="0.85">
+    <line x1="145" y1="97" x2="255" y2="302" />
+    <line x1="255" y1="97" x2="145" y2="302" />
+  </g>
+
+  <!-- Graph Vertices (Lattice Nodes) -->
+  <!-- Outer Cube Vertices -->
+  <circle cx="200" cy="60" r="6.5" fill="#38BDF8" stroke="#FFFFFF" stroke-width="2" />
+  <circle cx="90" cy="135" r="6.5" fill="#06B6D4" stroke="#FFFFFF" stroke-width="2" />
+  <circle cx="310" cy="135" r="6.5" fill="#818CF8" stroke="#FFFFFF" stroke-width="2" />
+  <circle cx="90" cy="265" r="6.5" fill="#4F46E5" stroke="#FFFFFF" stroke-width="2" />
+  <circle cx="310" cy="265" r="6.5" fill="#A855F7" stroke="#FFFFFF" stroke-width="2" />
+  <circle cx="200" cy="340" r="6.5" fill="#6366F1" stroke="#FFFFFF" stroke-width="2" />
+
+  <!-- Intermediate Arm Nodes -->
+  <circle cx="145" cy="97" r="4.5" fill="#38BDF8" />
+  <circle cx="255" cy="97" r="4.5" fill="#818CF8" />
+  <circle cx="145" cy="302" r="4.5" fill="#6366F1" />
+  <circle cx="255" cy="302" r="4.5" fill="#A855F7" />
+
+  <!-- Center Pivot Vertex (Intersection of Bridges) -->
+  <circle cx="200" cy="210" r="9" fill="#FFFFFF" stroke="#6366F1" stroke-width="3" filter="url(#glow)" />
+  <circle cx="200" cy="210" r="4" fill="#38BDF8" />
+</svg>

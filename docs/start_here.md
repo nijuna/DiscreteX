@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/discretex-banner.svg" alt="DiscreteX Banner" width="100%" />
+</div>
+
 # Start Here: A 5-Minute Orientation to DiscreteX
 
 Welcome to DiscreteX. Whether you are an educator, researcher, student, or algorithm engineer, this guide provides a direct, minimal path from initial setup to running your first mathematical computation.
@@ -120,32 +124,32 @@ Quotient size |Domain / R| = 2
 Explore the library through domain-specific pathways:
 
 ### Track 1: Graph Theory & Network Flows
-- **Core headers**: [`include/discretex/graph/`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/graph/), [`include/discretex/algorithms/`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/)
+- **Core headers**: [`include/discretex/graph/`](../include/discretex/graph/), [`include/discretex/algorithms/`](../include/discretex/algorithms/)
 - **Key functions**: `dijkstra_shortest_paths`, `max_flow_dinic`, `minimum_spanning_tree_kruskal`, `find_cut_vertices_and_bridges`, `find_eulerian_trail_undirected`.
-- **Reference example**: [`examples/network_flow_min_cut.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/network_flow_min_cut.cpp)
+- **Reference example**: [`examples/network_flow_min_cut.cpp`](../examples/network_flow_min_cut.cpp)
 
 ### Track 2: Formal Languages & Automata Synthesis
-- **Core headers**: [`include/discretex/automata/`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/automata/)
+- **Core headers**: [`include/discretex/automata/`](../include/discretex/automata/)
 - **Key functions**: `thompson_construction`, `subset_construction`, `minimize_dfa`, `is_language_equivalent`, `is_universal_language`.
-- **Reference example**: [`examples/regex_to_min_dfa.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/regex_to_min_dfa.cpp)
+- **Reference example**: [`examples/regex_to_min_dfa.cpp`](../examples/regex_to_min_dfa.cpp)
 
 ### Track 3: Propositional Logic & Constraint Satisfaction
-- **Core headers**: [`include/discretex/logic/`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/logic/)
+- **Core headers**: [`include/discretex/logic/`](../include/discretex/logic/)
 - **Key functions**: `formula`, `truth_table`, `to_nnf`, `to_cnf`, `solve_2sat`.
-- **Reference example**: [`examples/two_sat_solver.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/two_sat_solver.cpp)
+- **Reference example**: [`examples/two_sat_solver.cpp`](../examples/two_sat_solver.cpp)
 
 ### Track 4: Abstract Algebra & Quotient Morphisms
-- **Core headers**: [`include/discretex/algebra/`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algebra/)
+- **Core headers**: [`include/discretex/algebra/`](../include/discretex/algebra/)
 - **Key functions**: `operation_table`, `finite_group`, `is_normal_subgroup`, `quotient_group`, `certify_first_isomorphism_theorem`.
-- **Reference example**: [`examples/quotient_group_isomorphism.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/quotient_group_isomorphism.cpp)
+- **Reference example**: [`examples/quotient_group_isomorphism.cpp`](../examples/quotient_group_isomorphism.cpp)
 
 ### Track 5: Order Theory & Lattices
-- **Core headers**: [`include/discretex/order/`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/order/)
+- **Core headers**: [`include/discretex/order/`](../include/discretex/order/)
 - **Key functions**: `poset::from_dag_closure`, `poset::hasse_diagram`, `poset::linear_extension`, `poset::is_lattice`.
-- **Reference in Theory Tour**: [`docs/theory_to_code_tour.md#4-order-theory-and-lattice-structures-divisibility-posets`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/docs/theory_to_code_tour.md)
+- **Reference in Theory Tour**: [`docs/theory_to_code_tour.md#4-order-theory-and-lattice-structures-divisibility-posets`](theory_to_code_tour.md)
 
 ### Track 6: Combinatorics & Number Theory
-- **Core headers**: [`include/discretex/combinatorics/`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/combinatorics/), [`include/discretex/number_theory/`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/number_theory/)
+- **Core headers**: [`include/discretex/combinatorics/`](../include/discretex/combinatorics/), [`include/discretex/number_theory/`](../include/discretex/number_theory/)
 - **Key functions**: `k_subsets_view`, `permutations_view`, `power_set_view`, `extended_gcd`, `is_prime_miller_rabin`, `chinese_remainder_theorem`.
 
 ---
@@ -156,11 +160,11 @@ If you want to start with a full standalone example, choose based on your focus:
 
 | Profile | Recommended Example | Key Concept Demonstrated |
 | :--- | :--- | :--- |
-| **Easiest Entry Point** | [`examples/shortest_paths.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/shortest_paths.cpp) | Dijkstra single-source paths, lazy path reconstruction, and automated integrity validation. |
-| **Most Mathematical Bridge** | [`examples/quotient_group_isomorphism.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/quotient_group_isomorphism.cpp) | Non-abelian group $S_3$, normal subgroup checks, coset partitioning, and First Isomorphism Theorem ($S_3/A_3 \cong \mathbb{Z}_2$). |
-| **Most Algorithmic / Systems** | [`examples/network_flow_min_cut.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/network_flow_min_cut.cpp) | Dinic layered blocking flows, Kirchhoff conservation checks, and Max-Flow Min-Cut duality. |
-| **Most Unifying Pipeline** | [`examples/regex_to_min_dfa.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/regex_to_min_dfa.cpp) | Regex AST $\to$ Thompson NFA $\to$ Powerset DFA $\to$ Hopcroft Min DFA $\to$ Language Decision Procedures. |
-| **Most Elegant Logic Reduction** | [`examples/two_sat_solver.cpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/examples/two_sat_solver.cpp) | 2-CNF formula translation to directed implication graphs and linear-time Aspvall-Plass-Tarjan SCC solver. |
+| **Easiest Entry Point** | [`examples/shortest_paths.cpp`](../examples/shortest_paths.cpp) | Dijkstra single-source paths, lazy path reconstruction, and automated integrity validation. |
+| **Most Mathematical Bridge** | [`examples/quotient_group_isomorphism.cpp`](../examples/quotient_group_isomorphism.cpp) | Non-abelian group $S_3$, normal subgroup checks, coset partitioning, and First Isomorphism Theorem ($S_3/A_3 \cong \mathbb{Z}_2$). |
+| **Most Algorithmic / Systems** | [`examples/network_flow_min_cut.cpp`](../examples/network_flow_min_cut.cpp) | Dinic layered blocking flows, Kirchhoff conservation checks, and Max-Flow Min-Cut duality. |
+| **Most Unifying Pipeline** | [`examples/regex_to_min_dfa.cpp`](../examples/regex_to_min_dfa.cpp) | Regex AST $\to$ Thompson NFA $\to$ Powerset DFA $\to$ Hopcroft Min DFA $\to$ Language Decision Procedures. |
+| **Most Elegant Logic Reduction** | [`examples/two_sat_solver.cpp`](../examples/two_sat_solver.cpp) | 2-CNF formula translation to directed implication graphs and linear-time Aspvall-Plass-Tarjan SCC solver. |
 
 ---
 

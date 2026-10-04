@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/discretex-banner.svg" alt="DiscreteX Banner" width="100%" />
+</div>
+
 # DiscreteX v1.0.0 Release Notes
 
 **Release Date:** September 2026  

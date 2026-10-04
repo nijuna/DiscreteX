@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/discretex-banner.svg" alt="DiscreteX Banner" width="100%" />
+</div>
+
 # DiscreteX: Architectural Overview and System Design
 
 ## 1. Executive Summary
@@ -22,14 +26,14 @@ A central challenge in mathematical library design is the tension between semant
 DiscreteX resolves this tension through an explicit two-tier domain architecture:
 
 ### 2.1 Dense Execution Identity (`index_domain`)
-The inner algorithmic core operates exclusively over [`index_domain(n)`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/core/domain.hpp), representing contiguous integers:
+The inner algorithmic core operates exclusively over [`index_domain(n)`](../include/discretex/core/domain.hpp), representing contiguous integers:
 $$\Omega = \{0, 1, \dots, n-1\}$$
 - All state arrays, predecessor maps, bitsets, and distance tables are indexed in $O(1)$ time via primitive array offsets.
 - Storage is densely packed and cache-friendly, maximizing CPU L1/L2 data cache line utilization.
 - Memory layouts are strictly deterministic and contiguous.
 
 ### 2.2 Semantic Ingestion Boundary (`mapped_domain<T>`)
-For applications requiring arbitrary element types $T$, DiscreteX provides [`mapped_domain<T>`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/core/domain.hpp):
+For applications requiring arbitrary element types $T$, DiscreteX provides [`mapped_domain<T>`](../include/discretex/core/domain.hpp):
 - Encapsulates bidirectional mappings: forward translation from $T$ to `std::size_t` via hash indexing, and reverse retrieval from `std::size_t` to `const T&` via contiguous vector storage.
 - Elements are mapped exactly once at system boundaries (e.g., during graph ingestion or user query).
 - Core mathematical operations (such as shortest paths, network flows, or group quotients) execute over dense indices without bearing associative lookup costs.
@@ -50,22 +54,22 @@ flowchart LR
 DiscreteX abstracts binary relations and graphs into two complementary storage architectures governed by C++20 concepts:
 
 ### 3.1 Dense Bit-Matrix (`dense_relation`)
-Binary relations $R \subseteq \Omega \times \Omega$ are stored as flat vectors of 64-bit unsigned words (`std::uint64_t`) in [`dense_relation`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/relation/dense_relation.hpp). For a domain of size $n$:
+Binary relations $R \subseteq \Omega \times \Omega$ are stored as flat vectors of 64-bit unsigned words (`std::uint64_t`) in [`dense_relation`](../include/discretex/relation/dense_relation.hpp). For a domain of size $n$:
 - Total memory consumption is exactly $\lceil n / 64 \rceil \times n$ words.
 - **Bit-Row Fiber Views (`bit_row_fiber_view`)**: Iterating over outgoing edges of vertex $u$ uses hardware bit-scan operations (`std::countr_zero` via CPU instructions such as `TZCNT` or `BSF`). Entire blocks of 64 non-edges are skipped in $O(1)$ CPU cycles.
 - **Warshall Transitive Closure**: The reflexive-transitive closure $R^*$ is computed in-place using bitwise OR operations across 64-bit words, executing the inner loop in $O(n^3 / 64)$ time.
 
 ### 3.2 Sparse Adjacency Structures (`forward_adjacency_graph`, `bidirectional_adjacency_graph`)
-For sparse graphs where $|E| \ll |V|^2$, DiscreteX provides [`sparse_graph.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/graph/sparse_graph.hpp):
+For sparse graphs where $|E| \ll |V|^2$, DiscreteX provides [`sparse_graph.hpp`](../include/discretex/graph/sparse_graph.hpp):
 - Neighbor lists are maintained in sorted `std::vector<std::size_t>` blocks.
 - Neighborhood iteration yields zero-overhead `std::span<const std::size_t>`.
 - Edge presence queries execute in $O(\log \text{deg}(u))$ time via binary search (`std::lower_bound`).
 - Dual forward and backward neighbor arrays enable constant-time transpose queries without extra allocations.
 
 ### 3.3 Zero-Copy Converses (`views::transpose`)
-For any relation or graph satisfying [`concepts::BidirectionalRelation`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/concepts/relation.hpp), the converse relation:
+For any relation or graph satisfying [`concepts::BidirectionalRelation`](../include/discretex/concepts/relation.hpp), the converse relation:
 $$R^{-1} = \{(v, u) \mid (u, v) \in R\}$$
-is constructed via [`views::transpose`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/relation/transpose_view.hpp) as a zero-copy wrapper. The wrapper exchanges the forward accessor `out_neighbors(u)` with the backward accessor `in_neighbors(u)` with zero memory allocation.
+is constructed via [`views::transpose`](../include/discretex/relation/transpose_view.hpp) as a zero-copy wrapper. The wrapper exchanges the forward accessor `out_neighbors(u)` with the backward accessor `in_neighbors(u)` with zero memory allocation.
 
 ---
 
@@ -95,17 +99,17 @@ flowchart TD
 
 ### 4.1 Automata, Equivalence Relations, and Algebra
 Automata state minimization is traditionally taught as an isolated table-filling algorithm. DiscreteX models minimization as the algebraic quotient of a regular language under the Myhill-Nerode equivalence relation:
-1. **Regular Expressions ([`automata/regex.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/automata/regex.hpp))**: Formulated as recursive algebraic expression trees with overloaded operator syntax (`+` for concatenation, `|` for alternation, `star()` for Kleene closure).
+1. **Regular Expressions ([`automata/regex.hpp`](../include/discretex/automata/regex.hpp))**: Formulated as recursive algebraic expression trees with overloaded operator syntax (`+` for concatenation, `|` for alternation, `star()` for Kleene closure).
 2. **Thompson Compilation (`thompson_construction`)**: Inductively compiles regex AST fragments into $\varepsilon$-NFAs with single-entry, single-exit invariants.
-3. **Powerset Determinization (`subset_construction`)**: Transforms the $\varepsilon$-NFA into an equivalent total DFA using dense 64-bit bitset state clusters ([`state_set`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/automata/algorithms.hpp)).
+3. **Powerset Determinization (`subset_construction`)**: Transforms the $\varepsilon$-NFA into an equivalent total DFA using dense 64-bit bitset state clusters ([`state_set`](../include/discretex/automata/algorithms.hpp)).
 4. **Hopcroft Minimization (`minimize_dfa`)**: Refines the partition of states in $O(|\Sigma| \cdot |Q| \log |Q|)$ time.
 5. **The Bridge**: The resulting partition blocks are exposed directly as a mathematical equivalence relation via `relation_from_partition`, connecting automata theory directly to the core partition and relational quotient subsystem.
 
 ### 4.2 Logic, Implication Graphs, and Component Condensation
 The 2-SAT satisfiability problem bridges propositional logic and structural graph theory:
-1. **2-CNF Representation ([`logic/two_sat.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/logic/two_sat.hpp))**: Formulas are stored as sets of 2-clauses $(a \lor b)$.
+1. **2-CNF Representation ([`logic/two_sat.hpp`](../include/discretex/logic/two_sat.hpp))**: Formulas are stored as sets of 2-clauses $(a \lor b)$.
 2. **Implication Graph Reduction**: Each clause $(a \lor b)$ is expanded into two directed edges: $(\neg a \to b)$ and $(\neg b \to a)$ over a literal domain of size $2n$.
-3. **Tarjan Linear-Time SCC ([`algorithms/tarjan_scc.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/tarjan_scc.hpp))**: Computes the strongly connected components of the implication graph in $O(V + E)$ time.
+3. **Tarjan Linear-Time SCC ([`algorithms/tarjan_scc.hpp`](../include/discretex/algorithms/tarjan_scc.hpp))**: Computes the strongly connected components of the implication graph in $O(V + E)$ time.
 4. **Aspvall-Plass-Tarjan Satisfiability Certification**:
    $$\phi \in \text{SAT} \iff \forall x_i, \; \text{scc}(x_i) \ne \text{scc}(\neg x_i)$$
 5. **Model Extraction**: If satisfiable, a truth assignment is extracted in topological order of the condensation DAG:
@@ -113,7 +117,7 @@ The 2-SAT satisfiability problem bridges propositional logic and structural grap
 
 ### 4.3 Number Theory, Order Theory, and Distributive Lattices
 Divisibility on positive integers induces order-theoretic lattices:
-1. **Divisor Poset ($D_n$)**: For any integer $n$, the divisors $\{d \mid n\}$ ordered by divisibility ($u \preceq v \iff u \mid v$) form a finite partially ordered set ([`order/poset.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/order/poset.hpp)).
+1. **Divisor Poset ($D_n$)**: For any integer $n$, the divisors $\{d \mid n\}$ ordered by divisibility ($u \preceq v \iff u \mid v$) form a finite partially ordered set ([`order/poset.hpp`](../include/discretex/order/poset.hpp)).
 2. **Covering Relations and Hasse Diagrams**: The transitive reduction $C = \preceq \setminus (\preceq \circ \preceq)$ yields the minimal Hasse diagram without transitive shortcuts.
 3. **Lattice Meet and Join**: For any two divisors $u, v \in D_n$:
    $$u \wedge v = \gcd(u, v), \quad u \vee v = \text{lcm}(u, v)$$
@@ -121,12 +125,12 @@ Divisibility on positive integers induces order-theoretic lattices:
 
 ### 4.4 Abstract Algebra, Cosets, and the First Isomorphism Theorem
 Finite groups and their quotients are realized as computational structures:
-1. **Cayley Tables ([`algebra/operation_table.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algebra/operation_table.hpp))**: Ingestion of arbitrary binary operations with $O(1)$ Cayley multiplication.
+1. **Cayley Tables ([`algebra/operation_table.hpp`](../include/discretex/algebra/operation_table.hpp))**: Ingestion of arbitrary binary operations with $O(1)$ Cayley multiplication.
 2. **Normal Subgroups (`is_normal_subgroup`)**: Tests closure, invertibility, and conjugation invariance:
    $$\forall g \in G, \forall h \in H: \quad g \cdot h \cdot g^{-1} \in H$$
 3. **Coset Partitioning (`coset_partition`)**: Partitions elements of $G$ into disjoint cosets $gH$.
 4. **Quotient Group Construction (`quotient_group`)**: Builds $G / H$ as a first-class `finite_group<index_domain>` with verified operation $(aH)(bH) = (ab)H$.
-5. **First Isomorphism Theorem ([`algebra/quotient.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algebra/quotient.hpp))**: Given a group homomorphism $f: G \to G'$:
+5. **First Isomorphism Theorem ([`algebra/quotient.hpp`](../include/discretex/algebra/quotient.hpp))**: Given a group homomorphism $f: G \to G'$:
    $$G / \ker(f) \cong \text{im}(f)$$
    DiscreteX computes $\ker(f)$, forms $G / \ker(f)$, and algorithmically certifies the bijective, operation-preserving isomorphism onto $\text{im}(f)$.
 
@@ -138,19 +142,19 @@ DiscreteX adheres strictly to optimal theoretical complexity bounds:
 
 | Algorithm / Problem | Header File | Time Complexity | Space Complexity | Theoretical Invariants |
 | :--- | :--- | :--- | :--- | :--- |
-| **Transitive Closure** | [`relation/dense_relation.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/relation/dense_relation.hpp) | $O(n^3 / 64)$ | $O(n^2 / 64)$ | Reflexive-transitive fixpoint |
-| **SCC Decomposition** | [`algorithms/tarjan_scc.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/tarjan_scc.hpp) | $O(V + E)$ | $O(V)$ | Topological ordering of condensation |
-| **Biconnectivity / Bridges** | [`algorithms/connectivity.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/connectivity.hpp) | $O(V + E)$ | $O(V)$ | Tarjan low-link articulation points |
-| **Eulerian Circuit / Trail**| [`algorithms/eulerian.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/eulerian.hpp) | $O(V + E)$ | $O(V + E)$ | Hierholzer degree / balance criteria |
-| **DFA Minimization** | [`automata/algorithms.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/automata/algorithms.hpp) | $O(|\Sigma| \cdot |Q| \log |Q|)$ | $O(|Q| \cdot |\Sigma|)$ | Hopcroft partition refinement |
-| **Regex Compilation** | [`automata/regex.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/automata/regex.hpp) | $O(|R|)$ | $O(|R|)$ | Thompson inductive composition |
-| **Max Flow (Dinic)** | [`algorithms/network_flow.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/network_flow.hpp) | $O(V^2 E)$ | $O(V + E)$ | Layered blocking flows; $O(E \sqrt{V})$ unit networks |
-| **Min-Cut Verification** | [`algorithms/network_flow.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/network_flow.hpp) | $O(V + E)$ | $O(V)$ | Max-Flow Min-Cut duality |
-| **Bipartite Matching** | [`algorithms/bipartite_matching.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/bipartite_matching.hpp) | $O(E \sqrt{V})$ | $O(V)$ | Hopcroft-Karp; König $|M| = |C|$ |
-| **2-SAT Satisfiability** | [`logic/two_sat.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/logic/two_sat.hpp) | $O(V + E)$ | $O(V + E)$ | Aspvall-Plass-Tarjan linear model |
-| **Single-Source Shortest Paths** | [`algorithms/shortest_paths.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/shortest_paths.hpp) | $O((V+E)\log V)$ | $O(V)$ | Dijkstra min-priority queue |
-| **All-Pairs Shortest Paths** | [`algorithms/shortest_paths.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/shortest_paths.hpp) | $O(V^3)$ | $O(V^2)$ | Floyd-Warshall with negative cycle detection |
-| **Minimum Spanning Tree** | [`algorithms/minimum_spanning_tree.hpp`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/algorithms/minimum_spanning_tree.hpp) | $O(E \log E)$ | $O(V + E)$ | Kruskal DSU / Prim priority queue |
+| **Transitive Closure** | [`relation/dense_relation.hpp`](../include/discretex/relation/dense_relation.hpp) | $O(n^3 / 64)$ | $O(n^2 / 64)$ | Reflexive-transitive fixpoint |
+| **SCC Decomposition** | [`algorithms/tarjan_scc.hpp`](../include/discretex/algorithms/tarjan_scc.hpp) | $O(V + E)$ | $O(V)$ | Topological ordering of condensation |
+| **Biconnectivity / Bridges** | [`algorithms/connectivity.hpp`](../include/discretex/algorithms/connectivity.hpp) | $O(V + E)$ | $O(V)$ | Tarjan low-link articulation points |
+| **Eulerian Circuit / Trail**| [`algorithms/eulerian.hpp`](../include/discretex/algorithms/eulerian.hpp) | $O(V + E)$ | $O(V + E)$ | Hierholzer degree / balance criteria |
+| **DFA Minimization** | [`automata/algorithms.hpp`](../include/discretex/automata/algorithms.hpp) | $O(|\Sigma| \cdot |Q| \log |Q|)$ | $O(|Q| \cdot |\Sigma|)$ | Hopcroft partition refinement |
+| **Regex Compilation** | [`automata/regex.hpp`](../include/discretex/automata/regex.hpp) | $O(|R|)$ | $O(|R|)$ | Thompson inductive composition |
+| **Max Flow (Dinic)** | [`algorithms/network_flow.hpp`](../include/discretex/algorithms/network_flow.hpp) | $O(V^2 E)$ | $O(V + E)$ | Layered blocking flows; $O(E \sqrt{V})$ unit networks |
+| **Min-Cut Verification** | [`algorithms/network_flow.hpp`](../include/discretex/algorithms/network_flow.hpp) | $O(V + E)$ | $O(V)$ | Max-Flow Min-Cut duality |
+| **Bipartite Matching** | [`algorithms/bipartite_matching.hpp`](../include/discretex/algorithms/bipartite_matching.hpp) | $O(E \sqrt{V})$ | $O(V)$ | Hopcroft-Karp; König $|M| = |C|$ |
+| **2-SAT Satisfiability** | [`logic/two_sat.hpp`](../include/discretex/logic/two_sat.hpp) | $O(V + E)$ | $O(V + E)$ | Aspvall-Plass-Tarjan linear model |
+| **Single-Source Shortest Paths** | [`algorithms/shortest_paths.hpp`](../include/discretex/algorithms/shortest_paths.hpp) | $O((V+E)\log V)$ | $O(V)$ | Dijkstra min-priority queue |
+| **All-Pairs Shortest Paths** | [`algorithms/shortest_paths.hpp`](../include/discretex/algorithms/shortest_paths.hpp) | $O(V^3)$ | $O(V^2)$ | Floyd-Warshall with negative cycle detection |
+| **Minimum Spanning Tree** | [`algorithms/minimum_spanning_tree.hpp`](../include/discretex/algorithms/minimum_spanning_tree.hpp) | $O(E \log E)$ | $O(V + E)$ | Kruskal DSU / Prim priority queue |
 
 ---
 
@@ -158,10 +162,10 @@ DiscreteX adheres strictly to optimal theoretical complexity bounds:
 
 DiscreteX is engineered specifically for ISO C++20:
 
-1. **Strict Concepts**: All relations and graphs are constrained using concepts ([`concepts::Relation`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/concepts/relation.hpp), [`concepts::ForwardGraph`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/concepts/graph.hpp), [`concepts::BidirectionalGraph`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/concepts/graph.hpp)). Interfaces demand only what algorithms strictly require.
+1. **Strict Concepts**: All relations and graphs are constrained using concepts ([`concepts::Relation`](../include/discretex/concepts/relation.hpp), [`concepts::ForwardGraph`](../include/discretex/concepts/graph.hpp), [`concepts::BidirectionalGraph`](../include/discretex/concepts/graph.hpp)). Interfaces demand only what algorithms strictly require.
 2. **Hardware Intrinsic Acceleration**: `std::countr_zero` is utilized in `bit_row_fiber_view` to map 64-bit word transitions directly to assembly instructions (`TZCNT`), eliminating redundant memory traversal.
-3. **Structured Non-Allocating Views**: Graph reversals ([`views::transpose`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/relation/transpose_view.hpp)) and generator sequences ([`k_subsets_view`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/combinatorics/subsets.hpp), [`permutations_view`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/combinatorics/permutations.hpp), [`power_set_view`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/combinatorics/subsets.hpp)) generate elements lazily without intermediate vector heap allocations.
-4. **Three-Way Comparison (`operator<=>`)**: Dense state sets ([`state_set`](file:///media/Shared/RAIG-Records/03-Interests/Projects/DiscreteX/include/discretex/automata/algorithms.hpp)) and mathematical tuples leverage compiler-synthesized three-way comparisons for deterministic ordering in balanced search trees and sorting routines.
+3. **Structured Non-Allocating Views**: Graph reversals ([`views::transpose`](../include/discretex/relation/transpose_view.hpp)) and generator sequences ([`k_subsets_view`](../include/discretex/combinatorics/subsets.hpp), [`permutations_view`](../include/discretex/combinatorics/permutations.hpp), [`power_set_view`](../include/discretex/combinatorics/subsets.hpp)) generate elements lazily without intermediate vector heap allocations.
+4. **Three-Way Comparison (`operator<=>`)**: Dense state sets ([`state_set`](../include/discretex/automata/algorithms.hpp)) and mathematical tuples leverage compiler-synthesized three-way comparisons for deterministic ordering in balanced search trees and sorting routines.
 5. **Zero External Dependencies**: DiscreteX requires only the C++ standard library. It compiles with 0 warnings under `-std=c++20 -Wall -Wextra -Wpedantic -O2`.
 
 ---

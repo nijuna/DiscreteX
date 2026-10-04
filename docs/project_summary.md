@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/discretex-banner.svg" alt="DiscreteX Banner" width="100%" />
+</div>
+
 # DiscreteX: Project Summary and Technical Briefing
 
 **Repository:** [https://github.com/nijuna/DiscreteX](https://github.com/nijuna/DiscreteX)  
@@ -8,11 +12,20 @@
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary & Identity
 
-Discrete mathematics forms the mathematical foundation of computer science, underlying formal verification, compiler design, network routing, cryptography, database query optimization, and constraint satisfaction. In the contemporary software ecosystem, however, computational implementations of these concepts are fragmented across disparate libraries or ad-hoc competitive programming routines. Graph libraries impose heavy object graphs; combinatorics tools operate on raw arrays; logic engines isolate valuation spaces; and formal language automata are disconnected from algebraic quotient systems.
+Discrete mathematics forms the mathematical foundation of computer science, underlying formal verification, compiler design, network routing, cryptography, database query optimization, and constraint satisfaction. In the contemporary software ecosystem, computational implementations of these concepts are fragmented across disparate libraries or ad-hoc competitive programming routines.
 
 **DiscreteX** resolves this fragmentation. It is a modern, unified, header-only ISO C++20 library for finite discrete mathematics and algorithmic structures. The library is built on a **bridge-driven architecture**: rather than treating mathematical domains as isolated silos, DiscreteX establishes constructive, bidirectional transformations between abstract algebra, automata theory, propositional logic, graph theory, order theory, and combinatorics.
+
+### Repository Metadata
+
+- **GitHub One-Line Description (< 350 chars)**:  
+  *Modern, header-only ISO C++20 library for finite discrete mathematics and algorithmic structures. Unified bridge architecture across graphs, automata, logic, order theory, and abstract algebra with zero external dependencies.*
+- **Tagline**:  
+  *Unified Finite Discrete Mathematics and Algorithmic Structures in ISO C++20*
+- **Curated GitHub Topics / Tags**:  
+  `cpp20`, `modern-cpp`, `header-only`, `zero-dependencies`, `concepts`, `discrete-mathematics`, `graph-algorithms`, `automata-theory`, `finite-automata`, `regular-expressions`, `order-theory`, `posets`, `lattices`, `boolean-algebra`, `abstract-algebra`, `group-theory`, `propositional-logic`, `2-sat`, `network-flow`, `combinatorics`, `number-theory`
 
 ---
 
@@ -39,7 +52,7 @@ DiscreteX balances mathematical purity with hardware-level performance:
 | **Constraint Satisfaction (2-SAT)** | Aspvall-Plass-Tarjan Theorem | 2-CNF formula $\to$ directed implication graph $\to$ Tarjan SCC $\to$ topological model | Linear time $O(V + E)$; formula satisfiable iff $\forall x_i, \text{scc}(x_i) \ne \text{scc}(\neg x_i)$; extracts certified truth assignment. |
 | **Abstract Algebra & Quotients** | First Isomorphism Theorem for Groups | Cayley table $\to$ normal subgroup check $\to$ coset partition $\to$ quotient group $G/H$ | Rejects non-normal subgroups; verifies coset multiplication $(aH)(bH) = (ab)H$; certifies $S_3 / A_3 \cong \mathbb{Z}_2$. |
 | **Order Theory & Lattices** | Birkhoff Representation & Dedekind Divisibility | Divisors $\{d \mid n\} \to$ poset closure $\to$ covering relation $C = \preceq \setminus (\preceq \circ \preceq) \to$ Hasse diagram | Meets ($\gcd$) and joins ($\text{lcm}$) satisfy lattice axioms; square-free divisor posets proven isomorphic to Boolean hypercubes $Q_k$. |
-| **Network Optimization Duality** | Max-Flow Min-Cut & König's Theorem | `flow_network` $\to$ Dinic layered blocking flows $\to$ residual cut identification | Kirchhoff flow conservation at intermediate nodes; $\text{max-flow} = \text{min-cut}$; bipartite matching reduction certifying $|M| = |C|$. |
+| **Network Optimization Duality** | Max-Flow Min-Cut & König's Theorem | `flow_network` $\to$ Dinic layered blocking flows $\to$ residual cut identification | Kirchhoff flow conservation at intermediate nodes; $\text{max-flow} = \text{min-cut}$; bipartite matching reduction certifying $\|M\| = \|C\|$. |
 
 ---
 
@@ -52,7 +65,7 @@ DiscreteX balances mathematical purity with hardware-level performance:
   - Full CMake 3.15+ integration exporting target `DiscreteX::DiscreteX`.
   - Supports `FetchContent`, `find_package(DiscreteX CONFIG REQUIRED)`, and direct header inclusion.
   - Automated continuous integration via GitHub Actions.
-  - Curated onboarding guides: `docs/start_here.md`, `docs/api_index.md`, `docs/theory_to_code_tour.md`, and `docs/architecture.md`.
+  - Curated onboarding guides: [`docs/start_here.md`](start_here.md), [`docs/api_index.md`](api_index.md), [`docs/theory_to_code_tour.md`](theory_to_code_tour.md), and [`docs/architecture.md`](architecture.md).
 
 ---
 

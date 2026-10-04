@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/discretex-banner.svg" alt="DiscreteX Banner" width="100%" />
+</div>
+
 # DiscreteX Theory-to-Code Tour: Mapping Theorems to C++20 Pipelines
 
 This document provides a guided walkthrough of the five primary mathematical pipelines in DiscreteX. Each section establishes the theoretical theorem or formal specification, details its architectural realization in modern C++20, and presents code examples demonstrating verified execution.
