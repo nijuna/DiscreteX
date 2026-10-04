@@ -1,25 +1,18 @@
 <div align="center">
-  <a href="#discretex">
-    <img src="docs/assets/discretex-logo.svg" alt="DiscreteX Logo" width="175" />
-  </a>
-  <br />
-  <br />
-  <img src="docs/assets/discretex-banner.svg" alt="DiscreteX Banner" width="95%" />
+  <img src="docs/assets/discretex-logo.svg" alt="DiscreteX Logo" width="165" />
+  <h1>DiscreteX</h1>
+  <p><strong>Unified Finite Discrete Mathematics &amp; Algorithmic Structures in ISO C++20</strong></p>
+
+  <p>
+    <a href="https://github.com/nijuna/DiscreteX/actions/workflows/ci.yml"><img src="https://github.com/nijuna/DiscreteX/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
+    <a href="https://github.com/nijuna/DiscreteX/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-v1.0.0-F59E0B.svg" alt="Release v1.0.0" /></a>
+    <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/standard-ISO%20C%2B%2B20-D97706.svg" alt="ISO C++20" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-78350F.svg" alt="MIT License" /></a>
+    <img src="https://img.shields.io/badge/dependencies-zero-B45309.svg" alt="Zero Dependencies" />
+    <img src="https://img.shields.io/badge/tests-25%2F25%20passed-D4AF37.svg" alt="25/25 Tests Passing" />
+    <img src="https://img.shields.io/badge/architecture-header--only-A16207.svg" alt="Header Only" />
+  </p>
 </div>
-
-<p align="center">
-  <a href="https://github.com/nijuna/DiscreteX/actions/workflows/ci.yml"><img src="https://github.com/nijuna/DiscreteX/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
-  <a href="https://github.com/nijuna/DiscreteX/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-v1.0.0-F59E0B.svg" alt="Release v1.0.0" /></a>
-  <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/standard-ISO%20C%2B%2B20-D97706.svg" alt="ISO C++20" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-78350F.svg" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/dependencies-zero-B45309.svg" alt="Zero Dependencies" />
-  <img src="https://img.shields.io/badge/tests-25%2F25%20passed-D4AF37.svg" alt="25/25 Tests Passing" />
-  <img src="https://img.shields.io/badge/architecture-header--only-A16207.svg" alt="Header Only" />
-</p>
-
-<p align="center">
-  <strong>A modern, header-only ISO C++20 library establishing unified, constructive bridges across finite discrete mathematics and algorithmic structures.</strong>
-</p>
 
 ---
 
